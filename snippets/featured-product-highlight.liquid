@@ -1,0 +1,82 @@
+{%- assign highlight_product = section.settings.product -%}
+
+<div class="featured-highlight">
+  <div class="page-width">
+    <div class="featured-highlight__inner">
+      <header class="featured-highlight__header">
+        <p class="featured-highlight__eyebrow">
+          {{ 'Glowano' }}
+        </p>
+        <h2 class="featured-highlight__title">
+          Glowano Premium Eyelash Serum
+        </h2>
+      </header>
+
+      <div class="featured-highlight__content">
+        <div class="featured-highlight__media">
+          {%- if highlight_product and highlight_product.featured_image -%}
+            <a href="{{ highlight_product.url }}" class="featured-highlight__media-link">
+              <div class="featured-highlight__media-frame global-media-settings">
+                {{ highlight_product.featured_image | image_url: width: 900 | image_tag: loading: 'lazy', class: 'featured-highlight__image' }}
+              </div>
+            </a>
+          {%- else -%}
+            <div class="featured-highlight__media-frame global-media-settings">
+              {{ 'product-apparel-1' | placeholder_svg_tag: 'featured-highlight__image placeholder-svg' }}
+            </div>
+          {%- endif -%}
+        </div>
+
+        <div class="featured-highlight__body">
+          <p class="featured-highlight__description">
+            Reveal visibly longer, fuller-looking lashes with our concentrated, dermatologist-tested serum – powered by advanced peptides and nourishing botanicals for a luxurious daily ritual.
+          </p>
+
+          {%- if highlight_product -%}
+            {%- assign product_form_id = 'featured-highlight-form-' | append: section.id -%}
+            <product-form class="featured-highlight__form">
+              {%- form 'product',
+                highlight_product,
+                id: product_form_id,
+                class: 'form',
+                novalidate: 'novalidate',
+                data-type: 'add-to-cart-form'
+              -%}
+                <input
+                  type="hidden"
+                  name="id"
+                  value="{{ highlight_product.selected_or_first_available_variant.id }}"
+                  {% if highlight_product.selected_or_first_available_variant.available == false
+                    or highlight_product.selected_or_first_available_variant == null
+                  %}
+                    disabled
+                  {% endif %}
+                >
+
+                <button
+                  type="submit"
+                  name="add"
+                  class="featured-highlight__button button"
+                  {% if highlight_product.selected_or_first_available_variant.available == false
+                    or highlight_product.selected_or_first_available_variant == null
+                  %}
+                    disabled
+                  {% endif %}
+                >
+                  {%- if highlight_product.selected_or_first_available_variant == null -%}
+                    {{ 'products.product.unavailable' | t }}
+                  {%- elsif highlight_product.selected_or_first_available_variant.available == false -%}
+                    {{ 'products.product.sold_out' | t }}
+                  {%- else -%}
+                    Buy Now
+                  {%- endif -%}
+                </button>
+              {%- endform -%}
+            </product-form>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
