@@ -1,0 +1,613 @@
+{% doc %}
+  @prompt
+    Write a complete Shopify section in Liquid, CSS, and JavaScript that creates an interactive banner with two animated hotspots.
+    
+    Requirements:
+    
+    Banner & Hotspots
+    
+    Section setting for uploading a banner image.
+    
+    Two hotspots with customizable X/Y positions in the theme editor.
+    
+    Hotspots have a smooth pulsing animation (subtle, not distracting).
+    
+    Hotspots remain fixed in their positions on all screen sizes.
+    
+    Slide-In Product Card
+    
+    When a hotspot is clicked, open a slide-in product card from the bottom.
+    
+    Card content:
+    
+    Medium-sized product image.
+    
+    Product title (clickable → product page).
+    
+    Product price.
+    
+    Add-to-cart button.
+    
+    Both product image and title link to the product page.
+    
+    Card must not cause the banner image to zoom when opened.
+    
+    Closing Behavior
+    
+    Close button (❌) inside the card.
+    
+    Clicking anywhere outside the card should also close it.
+    
+    Add a semi-transparent overlay behind the card when it’s open.
+    
+    Customizations in Theme Editor
+    
+    Background color of card.
+    
+    Text size.
+    
+    Button style.
+    
+    Rich text area below the banner for brand messaging/product highlights.
+    
+    Animations & Style
+    
+    Smooth slide-in and slide-out transitions for the card.
+    
+    Overlay fades in/out.
+    
+    Clean, minimal styling.
+    
+    Code Structure
+    
+    Self-contained in one section file (sections/hotspot-banner.liquid).
+    
+    Use inline <style> and <script> inside the section to avoid external dependencies.
+    
+    Clean, well-commented code.
+
+{% enddoc %}
+{% assign ai_gen_id = section.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-hotspot-banner-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .ai-hotspot-banner-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .ai-hotspot-banner-placeholder-{{ ai_gen_id }} {
+    background-color: #f4f4f4;
+    width: 100%;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .ai-hotspot-banner-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    max-width: 500px;
+    max-height: 400px;
+  }
+
+  .ai-hotspot-empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .ai-hotspot-{{ ai_gen_id }} {
+    position: absolute;
+    width: {{ section.settings.hotspot_size }}px;
+    height: {{ section.settings.hotspot_size }}px;
+    border-radius: 50%;
+    background-color: {{ section.settings.hotspot_color }};
+    cursor: pointer;
+    z-index: 2;
+    transform: translate(-50%, -50%);
+    animation: ai-hotspot-pulse-{{ ai_gen_id }} 2s infinite;
+  }
+
+  .ai-hotspot-1-{{ ai_gen_id }} {
+    top: {{ section.settings.hotspot_1_y }}%;
+    left: {{ section.settings.hotspot_1_x }}%;
+  }
+
+  .ai-hotspot-2-{{ ai_gen_id }} {
+    top: {{ section.settings.hotspot_2_y }}%;
+    left: {{ section.settings.hotspot_2_x }}%;
+  }
+
+  @keyframes ai-hotspot-pulse-{{ ai_gen_id }} {
+    0% {
+      box-shadow: 0 0 0 0 {{ section.settings.hotspot_color | color_modify: 'alpha', 0.7 }};
+    }
+    70% {
+      box-shadow: 0 0 0 10px {{ section.settings.hotspot_color | color_modify: 'alpha', 0 }};
+    }
+    100% {
+      box-shadow: 0 0 0 0 {{ section.settings.hotspot_color | color_modify: 'alpha', 0 }};
+    }
+  }
+
+  .ai-hotspot-overlay-{{ ai_gen_id }} {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .ai-hotspot-overlay-{{ ai_gen_id }}.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .ai-hotspot-card-{{ ai_gen_id }} {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: {{ section.settings.card_background_color }};
+    z-index: 999;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .ai-hotspot-card-{{ ai_gen_id }}.active {
+    transform: translateY(0);
+  }
+
+  .ai-hotspot-card-content-{{ ai_gen_id }} {
+    padding: 30px 20px;
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .ai-hotspot-card-close-{{ ai_gen_id }} {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: {{ section.settings.card_text_color }};
+    z-index: 1000;
+  }
+
+  .ai-hotspot-product-{{ ai_gen_id }} {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  .ai-hotspot-product-image-{{ ai_gen_id }} {
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+  }
+
+  .ai-hotspot-product-image-{{ ai_gen_id }} img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;border-radius: 8px;
+  }
+
+  .ai-hotspot-product-info-{{ ai_gen_id }} {
+    flex-grow: 1;
+  }
+
+  .ai-hotspot-product-title-{{ ai_gen_id }} {
+    font-size: {{ section.settings.text_size }}px;
+    font-weight: 600;
+    margin: 0 0 10px;
+    color: {{ section.settings.card_text_color }};
+    text-decoration: none;
+  }
+
+  .ai-hotspot-product-title-{{ ai_gen_id }}:hover {
+    text-decoration: underline;
+  }
+
+  .ai-hotspot-product-price-{{ ai_gen_id }} {
+    font-size: {{ section.settings.text_size | minus: 2 }}px;
+    color: {{ section.settings.card_text_color }};
+    margin-bottom: 15px;
+  }
+
+  .ai-hotspot-add-to-cart-{{ ai_gen_id }} {
+    background-color: {{ section.settings.button_color }};
+    color: {{ section.settings.button_text_color }};
+    border: none;
+    padding: 12px 24px;
+    border-radius: {{ section.settings.button_border_radius }}px;
+    cursor: pointer;
+    font-size: {{ section.settings.text_size | minus: 2 }}px;
+    transition: background-color 0.3s ease;
+  }
+
+  .ai-hotspot-add-to-cart-{{ ai_gen_id }}:hover {
+    background-color: {{ section.settings.button_hover_color }};
+  }
+
+  .ai-hotspot-empty-product-{{ ai_gen_id }} {
+    text-align: center;
+    color: {{ section.settings.card_text_color }};
+    font-style: italic;
+    padding: 40px 20px;
+  }
+
+  .ai-hotspot-messaging-{{ ai_gen_id }} {
+    padding: 30px 20px;
+    text-align: center;
+    color: {{ section.settings.card_text_color }};
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-hotspot-{{ ai_gen_id }} {
+      width: {{ section.settings.hotspot_size | times: 0.8 }}px;
+      height: {{ section.settings.hotspot_size | times: 0.8 }}px;
+    }
+
+    .ai-hotspot-product-{{ ai_gen_id }} {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .ai-hotspot-product-image-{{ ai_gen_id }} {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto;
+    }
+  }
+{% endstyle %}
+
+<hotspot-banner-{{ ai_gen_id }} class="ai-hotspot-banner-{{ ai_gen_id }}" {{ section.shopify_attributes }}>
+  <div class="ai-hotspot-banner-wrapper-{{ ai_gen_id }}">
+    {% if section.settings.banner_image %}
+      <img
+        src="{{ section.settings.banner_image | image_url: width: 2000 }}"
+        alt="{{ section.settings.banner_image.alt | escape }}"
+        loading="lazy"
+        width="{{ section.settings.banner_image.width }}"
+        height="{{ section.settings.banner_image.height }}"
+        class="ai-hotspot-banner-image-{{ ai_gen_id }}"
+      >
+    {% else %}
+      <div class="ai-hotspot-banner-placeholder-{{ ai_gen_id }}">
+        {{ 'hero-apparel-1' | placeholder_svg_tag }}<div class="ai-hotspot-empty-state-{{ ai_gen_id }}">
+          Add a banner image to get started
+        </div>
+      </div>
+    {% endif %}
+
+    {% if section.settings.hotspot_1_enabled %}
+      <div
+        class="ai-hotspot-{{ ai_gen_id }} ai-hotspot-1-{{ ai_gen_id }}"
+        data-hotspot="1"
+      ></div>
+    {% endif %}
+
+    {% if section.settings.hotspot_2_enabled %}
+      <div
+        class="ai-hotspot-{{ ai_gen_id }} ai-hotspot-2-{{ ai_gen_id }}"
+        data-hotspot="2"
+      ></div>
+    {% endif %}
+  </div>
+
+  <div class="ai-hotspot-overlay-{{ ai_gen_id }}"></div>
+
+  <div class="ai-hotspot-card-{{ ai_gen_id }}">
+    <button class="ai-hotspot-card-close-{{ ai_gen_id }}" aria-label="Close">✕</button>
+    <div class="ai-hotspot-card-content-{{ ai_gen_id }}">
+      <div class="ai-hotspot-product-container-{{ ai_gen_id }}"></div>
+    </div>
+  </div>
+
+  {% if section.settings.messaging != blank %}
+    <div class="ai-hotspot-messaging-{{ ai_gen_id }}">
+      {{ section.settings.messaging }}
+    </div>
+  {% endif %}
+</hotspot-banner-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class HotspotBanner{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.hotspots = this.querySelectorAll('.ai-hotspot-{{ ai_gen_id }}');
+        this.overlay = this.querySelector('.ai-hotspot-overlay-{{ ai_gen_id }}');
+        this.card = this.querySelector('.ai-hotspot-card-{{ ai_gen_id }}');
+        this.closeButton = this.querySelector('.ai-hotspot-card-close-{{ ai_gen_id }}');
+        this.productContainer = this.querySelector('.ai-hotspot-product-container-{{ ai_gen_id }}');
+        this.products = {
+          1: {{ section.settings.hotspot_1_product | json }},
+          2: {{ section.settings.hotspot_2_product | json }}
+        };}
+
+      connectedCallback() {
+        this.setupEventListeners();
+      }
+
+      setupEventListeners() {
+        this.hotspots.forEach(hotspot => {
+          hotspot.addEventListener('click', (e) => {
+            const hotspotId = e.target.dataset.hotspot;
+            this.openCard(hotspotId);
+          });
+        });
+
+        this.closeButton.addEventListener('click', () => {
+          this.closeCard();
+        });
+
+        this.overlay.addEventListener('click', () => {
+          this.closeCard();
+        });document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && this.card.classList.contains('active')) {
+            this.closeCard();
+          }
+        });
+      }
+
+      openCard(hotspotId) {
+        const product = this.products[hotspotId];
+        
+        if (product) {
+          this.renderProduct(product);
+        } else {
+          this.renderEmptyState(hotspotId);
+        }
+
+        this.overlay.classList.add('active');
+        this.card.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
+      closeCard() {
+        this.overlay.classList.remove('active');
+        this.card.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+
+      renderProduct(product) {
+        const imageHtml = product.featured_image 
+          ? `<img src="${product.featured_image}" alt="${product.title}" loading="lazy">`
+          : '';
+
+        this.productContainer.innerHTML = `
+          <div class="ai-hotspot-product-{{ ai_gen_id }}"><a href="${product.url}" class="ai-hotspot-product-image-{{ ai_gen_id }}">
+              ${imageHtml}
+            </a>
+            <div class="ai-hotspot-product-info-{{ ai_gen_id }}">
+              <a href="${product.url}" class="ai-hotspot-product-title-{{ ai_gen_id }}">
+                ${product.title}
+              </a>
+              <div class="ai-hotspot-product-price-{{ ai_gen_id }}">
+                ${product.price}
+              </div>
+              <form action="/cart/add" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="id" value="${product.selected_variant_id}">
+                <button type="submit" class="ai-hotspot-add-to-cart-{{ ai_gen_id }}">
+                  Add to cart
+                </button>
+              </form>
+            </div>
+          </div>
+        `;
+      }
+
+      renderEmptyState(hotspotId) {
+        this.productContainer.innerHTML = `
+          <div class="ai-hotspot-empty-product-{{ ai_gen_id }}">
+            Select a product for hotspot ${hotspotId} in the theme editor
+          </div>
+        `;
+      }
+    }
+
+    customElements.define('hotspot-banner-{{ ai_gen_id }}', HotspotBanner{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Hotspot banner",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Banner image"
+    },
+    {
+      "type": "image_picker",
+      "id": "banner_image",
+      "label": "Banner image"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot 1"
+    },
+    {
+      "type": "checkbox",
+      "id": "hotspot_1_enabled",
+      "label": "Enable hotspot 1",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "hotspot_1_x",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "hotspot_1_y",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 40
+    },
+    {
+      "type": "product",
+      "id": "hotspot_1_product",
+      "label": "Product"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot 2"
+    },
+    {
+      "type": "checkbox",
+      "id": "hotspot_2_enabled",
+      "label": "Enable hotspot 2",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "hotspot_2_x",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "hotspot_2_y",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 60
+    },
+    {
+      "type": "product",
+      "id": "hotspot_2_product",
+      "label": "Product"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot style"
+    },
+    {
+      "type": "range",
+      "id": "hotspot_size",
+      "min": 20,
+      "max": 50,
+      "step": 2,
+      "unit": "px",
+      "label": "Hotspot size",
+      "default": 30
+    },
+    {
+      "type": "color",
+      "id": "hotspot_color",
+      "label": "Hotspot color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Product card style"
+    },
+    {
+      "type": "color",
+      "id": "card_background_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "card_text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Text size",
+      "default": 16
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_color",
+      "label": "Button hover color",
+      "default": "#333333"
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Button border radius",
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "Messaging"
+    },
+    {
+      "type": "richtext",
+      "id": "messaging",
+      "label": "Brand messaging",
+      "default": "<p>Discover our featured products with interactive hotspots</p>"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hotspot banner"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,96 @@
+<section class="stacked-products">
+  <div class="stacked-row">
+    <div class="stacked-image">
+      {{ all_products['your-eyelash-handle'].featured_image | img_url: '800x' | img_tag: 'Eyelash Serum' }}
+    </div>
+    <div class="stacked-content">
+      <h2>Eyelash Serum</h2>
+      <p>Longer, fuller lashes in just 4 weeks.</p>
+      <a href="{{ all_products['your-eyelash-handle'].url }}" class="stacked-btn">Shop Now →</a>
+    </div>
+  </div>
+
+  <div class="stacked-row reverse">
+    <div class="stacked-image">
+      {{ all_products['your-eyebrow-handle'].featured_image | img_url: '800x' | img_tag: 'Eyebrow Serum' }}
+    </div>
+    <div class="stacked-content">
+      <h2>Eyebrow Serum</h2>
+      <p>Bolder, thicker brows naturally.</p>
+      <a href="{{ all_products['your-eyebrow-handle'].url }}" class="stacked-btn">Shop Now →</a>
+    </div>
+  </div>
+</section>
+
+<style>
+.stacked-products {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+}
+.stacked-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+}
+.stacked-row.reverse {
+  flex-direction: row-reverse;
+}
+.stacked-image img {
+  width: 100%;
+  max-width: 500px;
+  border-radius: 20px;
+}
+.stacked-content {
+  max-width: 500px;
+}
+.stacked-content h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.stacked-content p {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 20px;
+}
+.stacked-btn {
+  display: inline-block;
+  padding: 12px 24px;
+  background: black;
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+.stacked-btn:hover {
+  background: #333;
+}
+@media (max-width: 768px) {
+  .stacked-row,
+  .stacked-row.reverse {
+    flex-direction: column;
+  }
+  .stacked-image img {
+    max-width: 100%;
+  }
+}
+</style>
+
+{% schema %}
+{
+  "name": "Stacked Products",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Stacked Products"
+    }
+  ]
+}
+{% endschema %}
+

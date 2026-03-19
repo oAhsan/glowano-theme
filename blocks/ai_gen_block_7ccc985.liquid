@@ -1,0 +1,820 @@
+{% doc %}
+  @prompt
+    "Design a review wall section with a collage/grid of customer photos and star ratings. When hovered or clicked, the review card should expand into a full testimonial. Include a subtle CTA like ‘Read All Reviews’ at the bottom. Keep it universal so it works for any store
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-review-wall-{{ ai_gen_id }} {
+    padding: {{ block.settings.section_padding }}px 0;
+    background-color: {{ block.settings.background_color }};
+  }
+
+  .ai-review-wall-container-{{ ai_gen_id }} {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .ai-review-wall-header-{{ ai_gen_id }} {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .ai-review-wall-title-{{ ai_gen_id }} {
+    font-size: {{ block.settings.title_size }}px;
+    color: {{ block.settings.text_color }};
+    margin: 0 0 16px;
+  }
+
+  .ai-review-wall-subtitle-{{ ai_gen_id }} {
+    font-size: {{ block.settings.subtitle_size }}px;
+    color: {{ block.settings.text_color }};
+    opacity: 0.8;
+    margin: 0;
+  }
+
+  .ai-review-grid-{{ ai_gen_id }} {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  .ai-review-card-{{ ai_gen_id }} {
+    background: {{ block.settings.card_background }};
+    border-radius: {{ block.settings.card_border_radius }}px;
+    padding: 20px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ai-review-card-{{ ai_gen_id }}:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .ai-review-card-header-{{ ai_gen_id }} {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .ai-review-avatar-{{ ai_gen_id }} {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .ai-review-avatar-{{ ai_gen_id }} img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-review-avatar-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, {{ block.settings.accent_color }}, {{ block.settings.accent_color }}dd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 18px;
+  }
+
+  .ai-review-info-{{ ai_gen_id }} {
+    flex-grow: 1;
+  }
+
+  .ai-review-name-{{ ai_gen_id }} {
+    font-weight: 600;
+    color: {{ block.settings.text_color }};
+    margin: 0 0 4px;
+    font-size: 16px;
+  }
+
+  .ai-review-stars-{{ ai_gen_id }} {
+    display: flex;
+    gap: 2px;
+  }
+
+  .ai-review-star-{{ ai_gen_id }} {
+    width: 16px;
+    height: 16px;
+    color: {{ block.settings.star_color }};
+  }
+
+  .ai-review-star-empty-{{ ai_gen_id }} {
+    color: #e0e0e0;
+  }
+
+  .ai-review-content-{{ ai_gen_id }} {
+    color: {{ block.settings.text_color }};
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+
+  .ai-review-preview-{{ ai_gen_id }} {
+    display: block;
+  }
+
+  .ai-review-full-{{ ai_gen_id }} {
+    display: none;
+  }
+
+  .ai-review-date-{{ ai_gen_id }} {
+    font-size: 12px;
+    color: {{ block.settings.text_color }};
+    opacity: 0.6;
+  }
+
+  .ai-review-cta-{{ ai_gen_id }} {
+    text-align: center;
+  }
+
+  .ai-review-cta-button-{{ ai_gen_id }} {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background-color: {{ block.settings.cta_background }};
+    color: {{ block.settings.cta_text_color }};
+    text-decoration: none;
+    border-radius: {{ block.settings.cta_border_radius }}px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+  }
+
+  .ai-review-cta-button-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.cta_hover_background }};
+  }
+
+  .ai-review-modal-{{ ai_gen_id }} {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .ai-review-modal-content-{{ ai_gen_id }} {
+    background: {{ block.settings.card_background }};
+    border-radius: {{ block.settings.card_border_radius }}px;
+    padding: 30px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  .ai-review-modal-close-{{ ai_gen_id }} {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: {{ block.settings.text_color }};
+    opacity: 0.6;
+    padding: 5px;
+  }
+
+  .ai-review-modal-close-{{ ai_gen_id }}:hover {
+    opacity: 1;
+  }
+
+  .ai-review-empty-state-{{ ai_gen_id }} {
+    text-align: center;
+    padding: 60px 20px;
+    color: {{ block.settings.text_color }};
+    opacity: 0.6;
+  }
+
+  .ai-review-empty-state-{{ ai_gen_id }} svg {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+  }
+
+  @media screen and (max-width: 768px) {
+    .ai-review-grid-{{ ai_gen_id }} {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .ai-review-card-{{ ai_gen_id }} {
+      padding: 16px;
+    }
+
+    .ai-review-modal-content-{{ ai_gen_id }} {
+      padding: 20px;
+      margin: 10px;
+    }
+  }
+{% endstyle %}
+
+<review-wall-{{ ai_gen_id }} class="ai-review-wall-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-review-wall-container-{{ ai_gen_id }}">
+    {% if block.settings.title != blank or block.settings.subtitle != blank %}
+      <div class="ai-review-wall-header-{{ ai_gen_id }}">
+        {% if block.settings.title != blank %}
+          <h2 class="ai-review-wall-title-{{ ai_gen_id }}">{{ block.settings.title }}</h2>
+        {% endif %}
+        {% if block.settings.subtitle != blank %}
+          <p class="ai-review-wall-subtitle-{{ ai_gen_id }}">{{ block.settings.subtitle }}</p>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% assign has_reviews = false %}
+    {% for i in (1..6) %}
+      {% assign review_enabled_key = 'review_' | append: i | append: '_enabled' %}
+      {% if block.settings[review_enabled_key] %}
+        {% assign has_reviews = true %}
+        {% break %}
+      {% endif %}
+    {% endfor %}
+
+    {% if has_reviews %}
+      <div class="ai-review-grid-{{ ai_gen_id }}">
+        {% for i in (1..6) %}
+          {% liquid
+            assign review_enabled_key = 'review_' | append: i | append: '_enabled'
+            assign review_name_key = 'review_' | append: i | append: '_name'
+            assign review_rating_key = 'review_' | append: i | append: '_rating'
+            assign review_text_key = 'review_' | append: i | append: '_text'
+            assign review_date_key = 'review_' | append: i | append: '_date'
+            assign review_image_key = 'review_' | append: i | append: '_image'
+
+            assign review_enabled = block.settings[review_enabled_key]
+            assign review_name = block.settings[review_name_key]
+            assign review_rating = block.settings[review_rating_key]
+            assign review_text = block.settings[review_text_key]
+            assign review_date = block.settings[review_date_key]
+            assign review_image = block.settings[review_image_key]
+          %}
+
+          {% if review_enabled %}
+            <div class="ai-review-card-{{ ai_gen_id }}" data-review-index="{{ i }}">
+              <div class="ai-review-card-header-{{ ai_gen_id }}">
+                <div class="ai-review-avatar-{{ ai_gen_id }}">
+                  {% if review_image %}
+                    <img src="{{ review_image | image_url: width: 96 }}" alt="{{ review_name | escape }}" loading="lazy">
+                  {% else %}
+                    <div class="ai-review-avatar-placeholder-{{ ai_gen_id }}">
+                      {{ review_name | slice: 0 | upcase | default: 'A' }}
+                    </div>
+                  {% endif %}
+                </div>
+                <div class="ai-review-info-{{ ai_gen_id }}">
+                  <h3 class="ai-review-name-{{ ai_gen_id }}">{{ review_name | default: 'Anonymous' }}</h3>
+                  <div class="ai-review-stars-{{ ai_gen_id }}">
+                    {% for star in (1..5) %}
+                      {% if star <= review_rating %}
+                        <svg class="ai-review-star-{{ ai_gen_id }}" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                      {% else %}
+                        <svg class="ai-review-star-{{ ai_gen_id }} ai-review-star-empty-{{ ai_gen_id }}" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+              <div class="ai-review-content-{{ ai_gen_id }}">
+                <div class="ai-review-preview-{{ ai_gen_id }}">
+                  {{ review_text | truncate: 120 | default: 'Great product! Highly recommend.' }}
+                </div>
+                <div class="ai-review-full-{{ ai_gen_id }}">
+                  {{ review_text | default: 'Great product! Highly recommend.' }}
+                </div>
+              </div>
+              {% if review_date != blank %}
+                <div class="ai-review-date-{{ ai_gen_id }}">{{ review_date }}</div>
+              {% endif %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      {% if block.settings.cta_text != blank %}
+        <div class="ai-review-cta-{{ ai_gen_id }}">
+          <a href="{{ block.settings.cta_link }}" class="ai-review-cta-button-{{ ai_gen_id }}">
+            {{ block.settings.cta_text }}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m9 18 6-6-6-6"/></svg>
+          </a>
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="ai-review-empty-state-{{ ai_gen_id }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+        <h3>No reviews yet</h3>
+        <p>Configure your first review to get started</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="ai-review-modal-{{ ai_gen_id }}" id="ai-review-modal-{{ ai_gen_id }}">
+    <div class="ai-review-modal-content-{{ ai_gen_id }}">
+      <button class="ai-review-modal-close-{{ ai_gen_id }}" aria-label="Close review">×</button>
+      <div id="ai-review-modal-body-{{ ai_gen_id }}"></div>
+    </div>
+  </div>
+</review-wall-{{ ai_gen_id }}>
+
+<script>
+(function() {
+  class ReviewWall{{ ai_gen_id }} extends HTMLElement {
+    constructor() {
+      super();
+    }
+
+    connectedCallback() {
+      this.modal = this.querySelector('#ai-review-modal-{{ ai_gen_id }}');
+      this.modalBody = this.querySelector('#ai-review-modal-body-{{ ai_gen_id }}');
+      this.closeButton = this.querySelector('.ai-review-modal-close-{{ ai_gen_id }}');
+      this.cards = this.querySelectorAll('.ai-review-card-{{ ai_gen_id }}');
+
+      this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+      this.cards.forEach(card => {
+        card.addEventListener('click', () => {
+          this.openModal(card);
+        });
+      });
+
+      this.closeButton.addEventListener('click', () => {
+        this.closeModal();
+      });
+
+      this.modal.addEventListener('click', (e) => {
+        if (e.target === this.modal) {
+          this.closeModal();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.modal.style.display === 'flex') {
+          this.closeModal();
+        }
+      });
+    }
+
+    openModal(card) {
+      const header = card.querySelector('.ai-review-card-header-{{ ai_gen_id }}').cloneNode(true);
+      const fullContent = card.querySelector('.ai-review-full-{{ ai_gen_id }}').innerHTML;
+      const date = card.querySelector('.ai-review-date-{{ ai_gen_id }}');
+
+      this.modalBody.innerHTML = '';
+      this.modalBody.appendChild(header);
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'ai-review-content-{{ ai_gen_id }}';
+      contentDiv.innerHTML = fullContent;
+      this.modalBody.appendChild(contentDiv);
+
+      if (date) {
+        const dateDiv = date.cloneNode(true);
+        this.modalBody.appendChild(dateDiv);
+      }
+
+      this.modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    closeModal() {
+      this.modal.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  }
+
+  customElements.define('review-wall-{{ ai_gen_id }}', ReviewWall{{ ai_gen_id }});
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Review wall",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Section content"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "title",
+      "label": "Title",
+      "default": "What Our Customers Say"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "Real reviews from real customers"
+    },
+    {
+      "type": "header",
+      "content": "Call to action"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "cta_text",
+      "label": "CTA text",
+      "default": "Read All Reviews"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "CTA link"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "card_background",
+      "label": "Card background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "star_color",
+      "label": "Star",
+      "default": "#ffd700"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent",
+      "default": "#007bff"
+    },
+    {
+      "type": "color",
+      "id": "cta_background",
+      "label": "CTA background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "cta_text_color",
+      "label": "CTA text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "cta_hover_background",
+      "label": "CTA hover background",
+      "default": "#333333"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "range",
+      "id": "section_padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Section padding",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "min": 20,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Title size",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "subtitle_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Subtitle size",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "card_border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Card border radius",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "cta_border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "CTA border radius",
+      "default": 6
+    },
+    {
+      "type": "header",
+      "content": "Review 1"
+    },
+    {
+      "type": "checkbox",
+      "id": "review_1_enabled",
+      "label": "Enable review 1",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "review_1_name",
+      "label": "Customer name",
+      "default": "Sarah Johnson"
+    },
+    {
+      "type": "range",
+      "id": "review_1_rating",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "label": "Star rating",
+      "default": 5
+    },
+    {
+      "type": "textarea",
+      "id": "review_1_text",
+      "label": "Review text",
+      "default": "Absolutely love this product! The quality exceeded my expectations and shipping was super fast. Will definitely be ordering again soon."
+    },
+    {
+      "type": "text",
+      "id": "review_1_date",
+      "label": "Review date",
+      "default": "2 weeks ago"
+    },
+    {
+      "type": "image_picker",
+      "id": "review_1_image",
+      "label": "Customer photo"
+    },
+    {
+      "type": "header",
+      "content": "Review 2"
+    },
+    {
+      "type": "checkbox",
+      "id": "review_2_enabled",
+      "label": "Enable review 2",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "review_2_name",
+      "label": "Customer name",
+      "default": "Mike Chen"
+    },
+    {
+      "type": "range",
+      "id": "review_2_rating",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "label": "Star rating",
+      "default": 5
+    },
+    {
+      "type": "textarea",
+      "id": "review_2_text",
+      "label": "Review text",
+      "default": "Great customer service and amazing product quality. Been using it for months now and it still looks brand new. Highly recommend!"
+    },
+    {
+      "type": "text",
+      "id": "review_2_date",
+      "label": "Review date",
+      "default": "1 month ago"
+    },
+    {
+      "type": "image_picker",
+      "id": "review_2_image",
+      "label": "Customer photo"
+    },
+    {
+      "type": "header",
+      "content": "Review 3"
+    },
+    {
+      "type": "checkbox",
+      "id": "review_3_enabled",
+      "label": "Enable review 3",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "review_3_name",
+      "label": "Customer name",
+      "default": "Emma Wilson"
+    },
+    {
+      "type": "range",
+      "id": "review_3_rating",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "label": "Star rating",
+      "default": 4
+    },
+    {
+      "type": "textarea",
+      "id": "review_3_text",
+      "label": "Review text",
+      "default": "Really impressed with the build quality and attention to detail. The only minor issue was the packaging could be better, but the product itself is fantastic."
+    },
+    {
+      "type": "text",
+      "id": "review_3_date",
+      "label": "Review date",
+      "default": "3 weeks ago"
+    },
+    {
+      "type": "image_picker",
+      "id": "review_3_image",
+      "label": "Customer photo"
+    },
+    {
+      "type": "header",
+      "content": "Review 4"
+    },
+    {
+      "type": "checkbox",
+      "id": "review_4_enabled",
+      "label": "Enable review 4",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "review_4_name",
+      "label": "Customer name",
+      "default": "David Rodriguez"
+    },
+    {
+      "type": "range",
+      "id": "review_4_rating",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "label": "Star rating",
+      "default": 5
+    },
+    {
+      "type": "textarea",
+      "id": "review_4_text",
+      "label": "Review text",
+      "default": "Perfect for what I needed. The team was helpful with questions and the delivery was exactly on time. Couldn't be happier with my purchase."
+    },
+    {
+      "type": "text",
+      "id": "review_4_date",
+      "label": "Review date",
+      "default": "1 week ago"
+    },
+    {
+      "type": "image_picker",
+      "id": "review_4_image",
+      "label": "Customer photo"
+    },
+    {
+      "type": "header",
+      "content": "Review 5"
+    },
+    {
+      "type": "checkbox",
+      "id": "review_5_enabled",
+      "label": "Enable review 5",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "review_5_name",
+      "label": "Customer name",
+      "default": "Lisa Thompson"
+    },
+    {
+      "type": "range",
+      "id": "review_5_rating",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "label": "Star rating",
+      "default": 5
+    },
+    {
+      "type": "textarea",
+      "id": "review_5_text",
+      "label": "Review text",
+      "default": "Exceeded all my expectations! The quality is outstanding and it arrived much faster than expected. Will definitely be a repeat customer."
+    },
+    {
+      "type": "text",
+      "id": "review_5_date",
+      "label": "Review date",
+      "default": "4 days ago"
+    },
+    {
+      "type": "image_picker",
+      "id": "review_5_image",
+      "label": "Customer photo"
+    },
+    {
+      "type": "header",
+      "content": "Review 6"
+    },
+    {
+      "type": "checkbox",
+      "id": "review_6_enabled",
+      "label": "Enable review 6",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "review_6_name",
+      "label": "Customer name",
+      "default": "James Park"
+    },
+    {
+      "type": "range",
+      "id": "review_6_rating",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "label": "Star rating",
+      "default": 4
+    },
+    {
+      "type": "textarea",
+      "id": "review_6_text",
+      "label": "Review text",
+      "default": "Solid product with great value for money. The design is sleek and modern, fits perfectly with my setup. Minor shipping delay but worth the wait."
+    },
+    {
+      "type": "text",
+      "id": "review_6_date",
+      "label": "Review date",
+      "default": "5 days ago"
+    },
+    {
+      "type": "image_picker",
+      "id": "review_6_image",
+      "label": "Customer photo"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Review wall"
+    }
+  ]
+}
+{% endschema %}

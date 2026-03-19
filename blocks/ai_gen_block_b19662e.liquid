@@ -1,0 +1,357 @@
+{% doc %}
+  @prompt
+    add hero section only visible on mobile having two clickable hotspots which can change position as i want, these hotspots are too bulky make them trasparent or change the idea from round buttons, hotspots disappeared cant see them anymore, make hotspots visible
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-mobile-hero-{{ ai_gen_id }} {
+    display: none;
+    position: relative;
+    width: 100%;
+    height: {{ block.settings.hero_height }}px;
+    overflow: hidden;
+  }
+
+  .ai-mobile-hero-image-wrapper-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .ai-mobile-hero-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-mobile-hero-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .ai-mobile-hero-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    max-width: 300px;
+    max-height: 300px;
+  }
+
+  .ai-mobile-hero-empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .ai-mobile-hero-hotspot-{{ ai_gen_id }} {
+    position: absolute;
+    z-index: 20;
+    cursor: pointer;
+    pointer-events: auto;
+  }
+
+  .ai-mobile-hero-hotspot-button-{{ ai_gen_id }} {
+    position: relative;
+    width: {{ block.settings.hotspot_size }}px;
+    height: {{ block.settings.hotspot_size }}px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+  }
+
+  .ai-mobile-hero-hotspot-pulse-{{ ai_gen_id }} {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: {{ block.settings.hotspot_color }};
+    opacity: 0.3;
+    animation: ai-mobile-hero-pulse-{{ ai_gen_id }} 2s infinite;
+  }
+
+  .ai-mobile-hero-hotspot-center-{{ ai_gen_id }} {
+    position: relative;
+    width: calc({{ block.settings.hotspot_size }}px * 0.5);
+    height: calc({{ block.settings.hotspot_size }}px * 0.5);
+    border-radius: 50%;
+    background-color: {{ block.settings.hotspot_color }};
+    border: 3px solid {{ block.settings.hotspot_border_color }};
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    opacity: 1;
+  }
+
+  .ai-mobile-hero-hotspot-1-{{ ai_gen_id }} {
+    top: {{ block.settings.hotspot_1_y }}%;
+    left: {{ block.settings.hotspot_1_x }}%;
+    transform: translate(-50%, -50%);
+  }
+
+  .ai-mobile-hero-hotspot-2-{{ ai_gen_id }} {
+    top: {{ block.settings.hotspot_2_y }}%;
+    left: {{ block.settings.hotspot_2_x }}%;
+    transform: translate(-50%, -50%);
+  }
+
+  @keyframes ai-mobile-hero-pulse-{{ ai_gen_id }} {
+    0% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.3;
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.5);
+      opacity: 0.1;
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.3;
+    }
+  }
+
+  .ai-mobile-hero-hotspot-button-{{ ai_gen_id }}:active .ai-mobile-hero-hotspot-center-{{ ai_gen_id }} {
+    transform: scale(0.9);
+  }
+
+  .ai-mobile-hero-hotspot-button-{{ ai_gen_id }}:hover .ai-mobile-hero-hotspot-center-{{ ai_gen_id }} {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-mobile-hero-{{ ai_gen_id }} {
+      display: none !important;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-mobile-hero-{{ ai_gen_id }} {
+      display: block;
+    }
+  }
+{% endstyle %}
+
+<mobile-hero-{{ ai_gen_id }}
+  class="ai-mobile-hero-{{ ai_gen_id }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-mobile-hero-image-wrapper-{{ ai_gen_id }}">
+    {% if block.settings.hero_image %}
+      <img
+        src="{{ block.settings.hero_image | image_url: width: 800 }}"
+        alt="{{ block.settings.hero_image.alt | escape }}"
+        class="ai-mobile-hero-image-{{ ai_gen_id }}"
+        loading="lazy"
+        width="{{ block.settings.hero_image.width }}"
+        height="{{ block.settings.hero_image.height }}"
+      >
+    {% else %}
+      <div class="ai-mobile-hero-placeholder-{{ ai_gen_id }}">
+        {{ 'hero-apparel-1' | placeholder_svg_tag }}<div class="ai-mobile-hero-empty-state-{{ ai_gen_id }}">
+          Add a hero image for mobile
+        </div>
+      </div>
+    {% endif %}
+
+    {% if block.settings.hotspot_1_enabled %}
+      <div class="ai-mobile-hero-hotspot-{{ ai_gen_id }} ai-mobile-hero-hotspot-1-{{ ai_gen_id }}">
+        <button class="ai-mobile-hero-hotspot-button-{{ ai_gen_id }}" data-hotspot="1" aria-label="Hotspot 1">
+          <div class="ai-mobile-hero-hotspot-pulse-{{ ai_gen_id }}"></div>
+          <div class="ai-mobile-hero-hotspot-center-{{ ai_gen_id }}"></div>
+        </button>
+      </div>
+    {% endif %}
+
+    {% if block.settings.hotspot_2_enabled %}
+      <div class="ai-mobile-hero-hotspot-{{ ai_gen_id }} ai-mobile-hero-hotspot-2-{{ ai_gen_id }}">
+        <button class="ai-mobile-hero-hotspot-button-{{ ai_gen_id }}" data-hotspot="2" aria-label="Hotspot 2">
+          <div class="ai-mobile-hero-hotspot-pulse-{{ ai_gen_id }}"></div>
+          <div class="ai-mobile-hero-hotspot-center-{{ ai_gen_id }}"></div>
+        </button>
+      </div>
+    {% endif %}
+  </div>
+</mobile-hero-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class MobileHero{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        this.setupEventListeners();
+      }
+
+      setupEventListeners() {
+        const hotspots = this.querySelectorAll('.ai-mobile-hero-hotspot-button-{{ ai_gen_id }}');
+        
+        hotspots.forEach(hotspot => {
+          hotspot.addEventListener('click', (e) => {
+            const hotspotNumber = e.target.closest('[data-hotspot]').getAttribute('data-hotspot');
+            this.handleHotspotClick(hotspotNumber);
+          });
+        });
+      }
+
+      handleHotspotClick(hotspotNumber) {
+        if (hotspotNumber === '1' && '{{ block.settings.hotspot_1_url }}') {
+          window.location.href = '{{ block.settings.hotspot_1_url }}';
+        } else if (hotspotNumber === '2' && '{{ block.settings.hotspot_2_url }}') {
+          window.location.href = '{{ block.settings.hotspot_2_url }}';
+        }
+      }
+    }
+
+    customElements.define('mobile-hero-{{ ai_gen_id }}', MobileHero{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Mobile hero with hotspots",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Hero image"
+    },
+    {
+      "type": "image_picker",
+      "id": "hero_image",
+      "label": "Hero image"
+    },
+    {
+      "type": "range",
+      "id": "hero_height",
+      "min": 200,
+      "max": 600,
+      "step": 20,
+      "unit": "px",
+      "label": "Hero height",
+      "default": 400
+    },
+    {
+      "type": "header",
+      "content": "Hotspot style"
+    },
+    {
+      "type": "range",
+      "id": "hotspot_size",
+      "min": 30,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "label": "Hotspot size",
+      "default": 50
+    },
+    {
+      "type": "color",
+      "id": "hotspot_color",
+      "label": "Hotspot color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "hotspot_border_color",
+      "label": "Hotspot border color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot 1"
+    },
+    {
+      "type": "checkbox",
+      "id": "hotspot_1_enabled",
+      "label": "Enable hotspot 1",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "hotspot_1_x",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "hotspot_1_y",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 40
+    },
+    {
+      "type": "url",
+      "id": "hotspot_1_url",
+      "label": "Link URL"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot 2"
+    },
+    {
+      "type": "checkbox",
+      "id": "hotspot_2_enabled",
+      "label": "Enable hotspot 2",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "hotspot_2_x",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "hotspot_2_y",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 60
+    },
+    {
+      "type": "url",
+      "id": "hotspot_2_url",
+      "label": "Link URL"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Mobile hero with hotspots"
+    }
+  ],
+  "tag": null
+}
+{% endschema %}

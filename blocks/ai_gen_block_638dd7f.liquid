@@ -1,0 +1,447 @@
+{% doc %}
+  @prompt
+    Build a slider section with two images side by side (before and after results of eyelashes), with a smooth draggable slider in the middle
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-before-after-slider-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    max-width: {{ block.settings.max_width }}px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: {{ block.settings.border_radius }}px;
+    background-color: #f4f4f4;
+  }
+
+  .ai-before-after-container-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: {{ block.settings.height }}px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-before-after-image-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-before-image-{{ ai_gen_id }} {
+    z-index: 1;
+  }
+
+  .ai-after-image-{{ ai_gen_id }} {
+    z-index: 2;
+    clip-path: polygon(0 0, var(--ai-slider-position-{{ ai_gen_id }}) 0, var(--ai-slider-position-{{ ai_gen_id }})100%, 0 100%);
+  }
+
+  .ai-slider-handle-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: var(--ai-slider-position-{{ ai_gen_id }});
+    width: {{ block.settings.handle_width }}px;
+    height: 100%;
+    background-color: {{ block.settings.handle_color }};
+    cursor: ew-resize;
+    z-index: 3;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  }
+
+  .ai-slider-handle-{{ ai_gen_id }}::before {
+    content: '';
+    width: {{ block.settings.handle_circle_size }}px;
+    height: {{ block.settings.handle_circle_size }}px;
+    background-color: {{ block.settings.handle_color }};
+    border: 3px solid {{ block.settings.handle_border_color }};
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  .ai-slider-handle-{{ ai_gen_id }}::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23{{ block.settings.handle_icon_color | remove: '#' }}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15,18 9,12 15,6'%3E%3C/polyline%3E%3Cpolyline points='9,18 15,12 9,6'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  .ai-image-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .ai-image-placeholder-{{ ai_gen_id }} svg {
+    width: 100px;
+    height: 100px;
+    opacity: 0.3;
+  }
+
+  .ai-empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 6px;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .ai-labels-{{ ai_gen_id }} {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 4;
+    pointer-events: none;
+  }
+
+  .ai-label-{{ ai_gen_id }} {
+    background-color: {{ block.settings.label_background_color }};
+    color: {{ block.settings.label_text_color }};
+    padding: 8px 16px;
+    border-radius: {{ block.settings.label_border_radius }}px;
+    font-size: {{ block.settings.label_font_size }}px;
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-before-after-container-{{ ai_gen_id }} {
+      height: {{ block.settings.height | times: 0.7 }}px;
+    }
+
+    .ai-labels-{{ ai_gen_id }} {
+      top: 10px;
+      left: 10px;
+      right: 10px;
+    }
+
+    .ai-label-{{ ai_gen_id }} {
+      padding: 6px 12px;
+      font-size: {{ block.settings.label_font_size | times: 0.9 }}px;
+    }
+  }
+{% endstyle %}
+
+<before-after-slider-{{ ai_gen_id }}
+  class="ai-before-after-slider-{{ ai_gen_id }}"
+  style="--ai-slider-position-{{ ai_gen_id }}: 50%;"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-before-after-container-{{ ai_gen_id }}">
+    {% if block.settings.before_image %}
+      <img
+        src="{{ block.settings.before_image | image_url: width: 1200}}"
+        alt="{{ block.settings.before_image.alt | default: 'Before image' | escape }}"
+        class="ai-before-after-image-{{ ai_gen_id }} ai-before-image-{{ ai_gen_id }}"
+        loading="lazy"
+        width="{{ block.settings.before_image.width }}"
+        height="{{ block.settings.before_image.height }}"
+      >
+    {% else %}
+      <div class="ai-before-after-image-{{ ai_gen_id }} ai-before-image-{{ ai_gen_id }}">
+        <div class="ai-image-placeholder-{{ ai_gen_id }}">
+          {{ 'image' | placeholder_svg_tag }}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if block.settings.after_image %}
+      <img
+        src="{{ block.settings.after_image | image_url: width: 1200 }}"
+        alt="{{ block.settings.after_image.alt | default: 'After image' | escape }}"
+        class="ai-before-after-image-{{ ai_gen_id }} ai-after-image-{{ ai_gen_id }}"
+        loading="lazy"
+        width="{{ block.settings.after_image.width }}"
+        height="{{ block.settings.after_image.height }}"
+      >
+    {% else %}
+      <div class="ai-before-after-image-{{ ai_gen_id }} ai-after-image-{{ ai_gen_id }}">
+        <div class="ai-image-placeholder-{{ ai_gen_id }}">
+          {{ 'image' | placeholder_svg_tag }}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="ai-slider-handle-{{ ai_gen_id }}"></div>
+
+    {% if block.settings.show_labels %}
+      <div class="ai-labels-{{ ai_gen_id }}">
+        <div class="ai-label-{{ ai_gen_id }}">{{ block.settings.before_label }}</div>
+        <div class="ai-label-{{ ai_gen_id }}">{{ block.settings.after_label }}</div>
+      </div>
+    {% endif %}
+
+    {% unless block.settings.before_image and block.settings.after_image %}
+      <div class="ai-empty-state-{{ ai_gen_id }}">
+        Add before and after images to see the comparison
+      </div>
+    {% endunless %}
+  </div>
+</before-after-slider-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class BeforeAfterSlider{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.isDragging = false;
+        this.sliderPosition = 50;
+      }
+
+      connectedCallback() {
+        this.container = this.querySelector('.ai-before-after-container-{{ ai_gen_id }}');
+        this.handle = this.querySelector('.ai-slider-handle-{{ ai_gen_id }}');
+        this.afterImage = this.querySelector('.ai-after-image-{{ ai_gen_id }}');
+
+        this.setupEventListeners();
+        this.updateSlider(this.sliderPosition);
+      }
+
+      setupEventListeners() {
+        this.handle.addEventListener('mousedown', this.startDrag.bind(this));
+        this.handle.addEventListener('touchstart', this.startDrag.bind(this), { passive: false });
+        document.addEventListener('mousemove', this.drag.bind(this));
+        document.addEventListener('touchmove', this.drag.bind(this), { passive: false });
+        
+        document.addEventListener('mouseup', this.stopDrag.bind(this));
+        document.addEventListener('touchend', this.stopDrag.bind(this));
+        this.container.addEventListener('click', this.handleClick.bind(this));
+      }
+
+      startDrag(e) {
+        e.preventDefault();
+        this.isDragging = true;
+        this.handle.style.transition = 'none';
+        this.afterImage.style.transition = 'none';
+      }
+
+      drag(e) {
+        if (!this.isDragging) return;
+
+        e.preventDefault();
+        const rect = this.container.getBoundingClientRect();
+        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        const x = clientX - rect.left;
+        const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+        
+        this.updateSlider(percentage);
+      }
+
+      stopDrag() {
+        if (!this.isDragging) return;
+        
+        this.isDragging = false;
+        this.handle.style.transition = '';
+        this.afterImage.style.transition = '';
+      }
+
+      handleClick(e) {
+        if (e.target === this.handle) return;
+        
+        const rect = this.container.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+        
+        this.handle.style.transition = 'left 0.3s ease';
+        this.afterImage.style.transition = 'clip-path 0.3s ease';
+        
+        this.updateSlider(percentage);
+        
+        setTimeout(() => {
+          this.handle.style.transition = '';
+          this.afterImage.style.transition = '';
+        }, 300);
+      }
+
+      updateSlider(percentage) {
+        this.sliderPosition = percentage;
+        this.style.setProperty('--ai-slider-position-{{ ai_gen_id }}', `${percentage}%`);
+      }
+    }
+
+    customElements.define('before-after-slider-{{ ai_gen_id }}', BeforeAfterSlider{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Before after slider",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Images"
+    },
+    {
+      "type": "image_picker",
+      "id": "before_image",
+      "label": "Before image"
+    },
+    {
+      "type": "image_picker",
+      "id": "after_image",
+      "label": "After image"
+    },
+    {
+      "type": "header",
+      "content": "Labels"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_labels",
+      "label": "Show labels",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "before_label",
+      "label": "Before label",
+      "default": "Before"
+    },
+    {
+      "type": "text",
+      "id": "after_label",
+      "label": "After label",
+      "default": "After"
+    },
+    {
+      "type": "color",
+      "id": "label_background_color",
+      "label": "Label background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "label_text_color",
+      "label": "Label text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "label_border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Label border radius",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "label_font_size",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Label font size",
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "Slider handle"
+    },
+    {
+      "type": "range",
+      "id": "handle_width",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "unit": "px",
+      "label": "Handle width",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "handle_circle_size",
+      "min": 30,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Handle circle size",
+      "default": 40
+    },
+    {
+      "type": "color",
+      "id": "handle_color",
+      "label": "Handle color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "handle_border_color",
+      "label": "Handle border color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "handle_icon_color",
+      "label": "Handle icon color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "min": 400,
+      "max": 1200,
+      "step": 50,
+      "unit": "px",
+      "label": "Maximum width",
+      "default": 800
+    },
+    {
+      "type": "range",
+      "id": "height",
+      "min": 300,
+      "max": 800,
+      "step": 50,
+      "unit": "px",
+      "label": "Height",
+      "default": 500
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 8
+    }
+  ],
+  "presets": [
+    {
+      "name": "Before after slider"
+    }
+  ]
+}
+{% endschema %}

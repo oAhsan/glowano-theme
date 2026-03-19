@@ -1,0 +1,658 @@
+{% doc %}
+  @prompt
+    tik tok vids corrousel i will embed links
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-tiktok-carousel-{{ ai_gen_id }} {
+    width: 100%;
+    overflow: hidden;
+    background-color: {{ block.settings.background_color }};
+    padding: {{ block.settings.section_padding }}px 0;
+  }
+
+  .ai-tiktok-carousel__header-{{ ai_gen_id }} {
+    text-align: {{ block.settings.text_alignment }};
+    margin-bottom: {{ block.settings.title_spacing }}px;
+    padding:0 20px;
+  }
+
+  .ai-tiktok-carousel__title-{{ ai_gen_id }} {
+    font-size: {{ block.settings.title_size }}px;
+    color: {{ block.settings.title_color }};
+    margin: 0 0 10px 0;
+    font-weight: 600;
+  }
+
+  .ai-tiktok-carousel__subtitle-{{ ai_gen_id }} {
+    font-size: {{ block.settings.subtitle_size }}px;
+    color: {{ block.settings.subtitle_color }};
+    margin: 0;
+  }
+
+  .ai-tiktok-carousel__container-{{ ai_gen_id }} {
+    position: relative;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .ai-tiktok-carousel__wrapper-{{ ai_gen_id }} {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;padding: 0 20px;
+  }
+
+  .ai-tiktok-carousel__wrapper-{{ ai_gen_id }}::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ai-tiktok-carousel__track-{{ ai_gen_id }} {
+    display: flex;
+    gap: {{ block.settings.video_spacing }}px;
+    padding-bottom: 10px;
+  }
+
+  .ai-tiktok-carousel__slide-{{ ai_gen_id }} {
+    flex: 0 0 {{ block.settings.video_width }}px;
+    height: {{ block.settings.video_height }}px;
+    position: relative;
+    border-radius: {{ block.settings.border_radius }}px;
+    overflow: hidden;
+    background-color: #000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .ai-tiktok-carousel__video-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: {{ block.settings.border_radius }}px;
+  }
+
+  .ai-tiktok-carousel__placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #ff0050, #00f2ea);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    border-radius: {{ block.settings.border_radius }}px;
+  }
+
+  .ai-tiktok-carousel__placeholder-icon-{{ ai_gen_id }} {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 12px;
+  }
+
+  .ai-tiktok-carousel__placeholder-text-{{ ai_gen_id }} {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  .ai-tiktok-carousel__nav-{{ ai_gen_id }} {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;padding: 0 20px;
+  }
+
+  .ai-tiktok-carousel__nav-button-{{ ai_gen_id }} {
+    background-color: {{ block.settings.nav_button_color }};
+    color: {{ block.settings.nav_button_text_color }};
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .ai-tiktok-carousel__nav-button-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.nav_button_hover_color }};
+    transform: scale(1.05);
+  }
+
+  .ai-tiktok-carousel__nav-button-{{ ai_gen_id }}:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .ai-tiktok-carousel__dots-{{ ai_gen_id }} {
+    display: flex;
+    gap: 8px;
+    margin: 020px;
+  }
+
+  .ai-tiktok-carousel__dot-{{ ai_gen_id }} {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: {{ block.settings.dot_color }};
+    opacity: 0.4;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .ai-tiktok-carousel__dot-{{ ai_gen_id }}.active {
+    opacity: 1;
+    background-color: {{ block.settings.dot_active_color }};
+  }
+
+  .ai-tiktok-carousel__empty-state-{{ ai_gen_id }} {
+    text-align: center;
+    padding: 60px 20px;
+    color: {{ block.settings.subtitle_color }};
+  }
+
+  .ai-tiktok-carousel__empty-title-{{ ai_gen_id }} {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+  }
+
+  .ai-tiktok-carousel__empty-text-{{ ai_gen_id }} {
+    font-size: 14px;
+    margin: 0;
+    opacity: 0.7;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-tiktok-carousel__slide-{{ ai_gen_id }} {
+      flex: 0 0 {{ block.settings.video_width | times: 0.8 }}px;
+      height: {{ block.settings.video_height | times: 0.8 }}px;
+    }
+
+    .ai-tiktok-carousel__wrapper-{{ ai_gen_id }} {
+      padding: 0 15px;
+    }
+
+    .ai-tiktok-carousel__header-{{ ai_gen_id }} {
+      padding: 0 15px;
+    }
+
+    .ai-tiktok-carousel__nav-{{ ai_gen_id }} {
+      padding: 0 15px;
+    }
+  }
+{% endstyle %}
+
+<tiktok-carousel-{{ ai_gen_id }}
+  class="ai-tiktok-carousel-{{ ai_gen_id }}"
+  {{ block.shopify_attributes }}
+>
+  {% if block.settings.title != blank or block.settings.subtitle != blank %}
+    <div class="ai-tiktok-carousel__header-{{ ai_gen_id }}">
+      {% if block.settings.title != blank %}
+        <h2 class="ai-tiktok-carousel__title-{{ ai_gen_id }}">{{ block.settings.title }}</h2>
+      {% endif %}
+      {% if block.settings.subtitle != blank %}
+        <p class="ai-tiktok-carousel__subtitle-{{ ai_gen_id }}">{{ block.settings.subtitle }}</p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% assign has_videos = false %}
+  {% for i in (1..6) %}
+    {% assign video_url_key = 'video_url_' | append: i %}
+    {% if block.settings[video_url_key] != blank %}
+      {% assign has_videos = true %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+
+  {% if has_videos %}
+    <div class="ai-tiktok-carousel__container-{{ ai_gen_id }}">
+      <div class="ai-tiktok-carousel__wrapper-{{ ai_gen_id }}">
+        <div class="ai-tiktok-carousel__track-{{ ai_gen_id }}">
+          {% for i in (1..6) %}
+            {% assign video_url_key = 'video_url_' | append: i %}
+            {% assign video_url = block.settings[video_url_key] %}
+            {% if video_url != blank %}
+              <div class="ai-tiktok-carousel__slide-{{ ai_gen_id }}" data-slide="{{ forloop.index0 }}">
+                {% if video_url contains 'tiktok.com' %}
+                  {% assign embed_url = video_url | replace: 'tiktok.com', 'tiktok.com/embed' %}
+                  <iframe
+                    class="ai-tiktok-carousel__video-{{ ai_gen_id }}"
+                    src="{{ embed_url }}"
+                    allowfullscreen
+                    loading="lazy"
+                    title="TikTok video {{ i }}"
+                  ></iframe>
+                {% else %}
+                  <div class="ai-tiktok-carousel__placeholder-{{ ai_gen_id }}">
+                    <svg class="ai-tiktok-carousel__placeholder-icon-{{ ai_gen_id }}" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.742.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43V7a8.16 8.16 0 0 04.77 1.52v-3.4a4.85 4.85 0 0 1-1-.43z"/>
+                    </svg>
+                    <p class="ai-tiktok-carousel__placeholder-text-{{ ai_gen_id }}">Invalid TikTok URL</p>
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      {% if block.settings.show_navigation %}
+        <div class="ai-tiktok-carousel__nav-{{ ai_gen_id }}">
+          <button class="ai-tiktok-carousel__nav-button-{{ ai_gen_id }}" data-direction="prev" aria-label="Previous video">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15,18 9,12 15,6"></polyline>
+            </svg>
+          </button>
+          
+          {% if block.settings.show_dots %}
+            <div class="ai-tiktok-carousel__dots-{{ ai_gen_id }}"></div>
+          {% endif %}
+          
+          <button class="ai-tiktok-carousel__nav-button-{{ ai_gen_id }}" data-direction="next" aria-label="Next video">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9,18 15,12 9,6"></polyline>
+            </svg>
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="ai-tiktok-carousel__empty-state-{{ ai_gen_id }}">
+      <h3 class="ai-tiktok-carousel__empty-title-{{ ai_gen_id }}">Add TikTok Videos</h3>
+      <p class="ai-tiktok-carousel__empty-text-{{ ai_gen_id }}">Add TikTok video URLs in the block settings to display your video carousel</p>
+    </div>
+  {% endif %}
+</tiktok-carousel-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class TikTokCarousel{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.currentSlide = 0;
+        this.slidesPerView = 1;
+        this.totalSlides = 0;
+      }
+
+      connectedCallback() {
+        this.wrapper = this.querySelector('.ai-tiktok-carousel__wrapper-{{ ai_gen_id }}');
+        this.track = this.querySelector('.ai-tiktok-carousel__track-{{ ai_gen_id }}');
+        this.slides = this.querySelectorAll('.ai-tiktok-carousel__slide-{{ ai_gen_id }}');
+        this.prevButton = this.querySelector('[data-direction="prev"]');
+        this.nextButton = this.querySelector('[data-direction="next"]');
+        this.dotsContainer = this.querySelector('.ai-tiktok-carousel__dots-{{ ai_gen_id }}');
+
+        if (!this.slides.length) return;
+
+        this.totalSlides = this.slides.length;
+        this.calculateSlidesPerView();
+        this.setupEventListeners();
+        this.createDots();
+        this.updateNavigation();
+        this.updateDots();
+      }
+
+      calculateSlidesPerView() {
+        if (!this.wrapper || !this.slides.length) return;
+        
+        const wrapperWidth = this.wrapper.offsetWidth;
+        const slideWidth = this.slides[0].offsetWidth;
+        const gap = parseInt(getComputedStyle(this.track).gap) || 0;
+        
+        this.slidesPerView = Math.floor((wrapperWidth + gap) / (slideWidth + gap));
+        this.slidesPerView = Math.max(1, this.slidesPerView);
+      }
+
+      setupEventListeners() {
+        if (this.prevButton) {
+          this.prevButton.addEventListener('click', () => this.goToPrevious());
+        }
+        if (this.nextButton) {
+          this.nextButton.addEventListener('click', () => this.goToNext());
+        }
+
+        window.addEventListener('resize', () => {
+          this.calculateSlidesPerView();
+          this.updateNavigation();
+        });
+
+        let isScrolling = false;
+        if (this.wrapper) {
+          this.wrapper.addEventListener('scroll', () => {
+            if (!isScrolling) {
+              window.requestAnimationFrame(() => {
+                this.updateCurrentSlideFromScroll();
+                isScrolling = false;
+              });isScrolling = true;
+            }
+          });
+        }
+      }
+
+      createDots() {
+        if (!this.dotsContainer) return;
+
+        const maxSlide = Math.max(0, this.totalSlides - this.slidesPerView);
+        this.dotsContainer.innerHTML = '';
+
+        for (let i = 0; i <= maxSlide; i++) {
+          const dot = document.createElement('button');
+          dot.className = 'ai-tiktok-carousel__dot-{{ ai_gen_id }}';
+          dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+          dot.addEventListener('click', () => this.goToSlide(i));
+          this.dotsContainer.appendChild(dot);
+        }
+      }
+
+      updateCurrentSlideFromScroll() {
+        if (!this.wrapper || !this.slides.length) return;
+
+        const scrollLeft = this.wrapper.scrollLeft;
+        const slideWidth = this.slides[0].offsetWidth;
+        const gap = parseInt(getComputedStyle(this.track).gap) || 0;
+        
+        this.currentSlide = Math.round(scrollLeft / (slideWidth + gap));
+        this.updateDots();
+      }
+
+      goToSlide(index) {
+        if (!this.wrapper || !this.slides.length) return;
+
+        const slideWidth = this.slides[0].offsetWidth;
+        const gap = parseInt(getComputedStyle(this.track).gap) || 0;
+        const scrollPosition = index * (slideWidth + gap);
+
+        this.wrapper.scrollTo({
+          left: scrollPosition,
+          behavior: 'smooth'
+        });
+
+        this.currentSlide = index;
+        this.updateNavigation();
+        this.updateDots();
+      }
+
+      goToPrevious() {
+        const newSlide = Math.max(0, this.currentSlide - 1);
+        this.goToSlide(newSlide);
+      }
+
+      goToNext() {
+        const maxSlide = Math.max(0, this.totalSlides - this.slidesPerView);
+        const newSlide = Math.min(maxSlide, this.currentSlide + 1);
+        this.goToSlide(newSlide);
+      }
+
+      updateNavigation() {
+        if (!this.prevButton || !this.nextButton) return;
+
+        const maxSlide = Math.max(0, this.totalSlides - this.slidesPerView);
+        
+        this.prevButton.disabled = this.currentSlide <= 0;
+        this.nextButton.disabled = this.currentSlide >= maxSlide;
+      }
+
+      updateDots() {
+        if (!this.dotsContainer) return;
+
+        const dots = this.dotsContainer.querySelectorAll('.ai-tiktok-carousel__dot-{{ ai_gen_id }}');
+        dots.forEach((dot, index) => {
+          dot.classList.toggle('active', index === this.currentSlide);
+        });
+      }
+    }
+
+    customElements.define('tiktok-carousel-{{ ai_gen_id }}', TikTokCarousel{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "TikTok video carousel",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Latest TikToks"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "Check out our latest videos"
+    },
+    {
+      "type": "header",
+      "content": "Video URLs"
+    },
+    {
+      "type": "url",
+      "id": "video_url_1",
+      "label": "TikTok video URL 1"
+    },
+    {
+      "type": "url",
+      "id": "video_url_2",
+      "label": "TikTok video URL 2"
+    },
+    {
+      "type": "url",
+      "id": "video_url_3",
+      "label": "TikTok video URL 3"
+    },
+    {
+      "type": "url",
+      "id": "video_url_4",
+      "label": "TikTok video URL 4"
+    },
+    {
+      "type": "url",
+      "id": "video_url_5",
+      "label": "TikTok video URL 5"
+    },
+    {
+      "type": "url",
+      "id": "video_url_6",
+      "label": "TikTok video URL 6"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "video_width",
+      "min": 200,
+      "max": 400,
+      "step": 20,
+      "unit": "px",
+      "label": "Video width",
+      "default": 300
+    },
+    {
+      "type": "range",
+      "id": "video_height",
+      "min": 300,
+      "max": 600,
+      "step": 20,
+      "unit": "px",
+      "label": "Video height",
+      "default": 500
+    },
+    {
+      "type": "range",
+      "id": "video_spacing",
+      "min": 10,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "label": "Video spacing",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 12
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Navigation"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_navigation",
+      "label": "Show navigation",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "Show dots",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "title_color",
+      "label": "Title color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "subtitle_color",
+      "label": "Subtitle color",
+      "default": "#666666"
+    },
+    {
+      "type": "color",
+      "id": "nav_button_color",
+      "label": "Navigation button color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "nav_button_text_color",
+      "label": "Navigation button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "nav_button_hover_color",
+      "label": "Navigation button hover color",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "dot_color",
+      "label": "Dot color",
+      "default": "#cccccc"
+    },
+    {
+      "type": "color",
+      "id": "dot_active_color",
+      "label": "Active dot color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "min": 16,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "label": "Title size",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "subtitle_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Subtitle size",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "title_spacing",
+      "min": 10,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Title spacing",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "section_padding",
+      "min": 20,
+      "max": 80,
+      "step": 10,
+      "unit": "px",
+      "label": "Section padding",
+      "default": 40
+    }
+  ],
+  "presets": [
+    {
+      "name": "TikTok video carousel"
+    }
+  ]
+}
+{% endschema %}

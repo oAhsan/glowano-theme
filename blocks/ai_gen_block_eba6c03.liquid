@@ -1,0 +1,763 @@
+{% doc %}
+  @prompt
+    Create a custom Shopify section for a banner image with two clickable animated hotspots. The hotspots should have a subtle pulsing/impulsing animation to draw attention without being distracting. When a hotspot is clicked, a sleek slide-in product card should appear from the bottom of the screen. The card must display the product image, title, price, and an add-to-cart button. It should also include customizable options in the theme editor such as background color, text size, and button style. The slide-in card should close when clicking outside or pressing a close button. Hotspots must remain in fixed positions on the banner when resizing the screen. In the theme editor, I should be able to set the banner image, hotspot positions (x, y), and assign products. Additionally, below the banner image, include a customizable rich text area for adding brand messaging or product highlights.
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-banner-hotspots-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .ai-banner-image-wrapper-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .ai-banner-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .ai-banner-placeholder-{{ ai_gen_id }} {
+    background-color: #f4f4f4;
+    width: 100%;
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .ai-banner-empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .ai-banner-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    max-width: 500px;
+    max-height: 500px;
+  }
+
+  .ai-banner-hotspot-{{ ai_gen_id }} {
+    position: absolute;
+    top: var(--ai-hotspot-y-{{ ai_gen_id }});
+    left: var(--ai-hotspot-x-{{ ai_gen_id }});
+    transform: translate(-50%, -50%);
+    z-index: 2;
+  }
+
+  .ai-banner-hotspot-button-{{ ai_gen_id }} {
+    width: {{ block.settings.hotspot_size }}px;
+    height: {{ block.settings.hotspot_size }}px;
+    border-radius: 50%;
+    background-color: {{ block.settings.hotspot_color }};
+    border: 2px solid {{ block.settings.hotspot_border_color }};
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: {{ block.settings.hotspot_icon_color }};
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;animation: ai-banner-pulse-{{ ai_gen_id }} 2s infinite;
+  }
+
+  .ai-banner-hotspot-button-{{ ai_gen_id }}:hover {
+    transform: scale(1.1);
+    animation-play-state: paused;
+  }
+
+  .ai-banner-hotspot-button-{{ ai_gen_id }} svg {
+    width: calc({{ block.settings.hotspot_size }}px * 0.5);
+    height: calc({{ block.settings.hotspot_size }}px * 0.5);
+  }
+
+  @keyframes ai-banner-pulse-{{ ai_gen_id }} {
+    0%, 100% {
+      transform: scale(1);box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .ai-banner-product-card-{{ ai_gen_id }} {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: {{ block.settings.card_bg_color }};
+    border-radius: {{ block.settings.card_border_radius }}px {{ block.settings.card_border_radius }}px 0 0;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+    padding: 24px;
+    z-index: 1000;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    max-width: 500px;
+    margin: 0 auto;
+    color: {{ block.settings.card_text_color }};
+  }
+
+  .ai-banner-product-card-{{ ai_gen_id }}.active {
+    transform: translateY(0);
+  }
+
+  .ai-banner-card-header-{{ ai_gen_id }} {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .ai-banner-card-close-{{ ai_gen_id }} {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: {{ block.settings.card_text_color }};
+    opacity: 0.7;
+    border-radius: 50%;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+  }
+
+  .ai-banner-card-close-{{ ai_gen_id }}:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .ai-banner-card-content-{{ ai_gen_id }} {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .ai-banner-card-image-{{ ai_gen_id }} {
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .ai-banner-card-image-{{ ai_gen_id }} img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-banner-card-image-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-banner-card-info-{{ ai_gen_id }} {
+    flex-grow: 1;
+  }
+
+  .ai-banner-card-title-{{ ai_gen_id }} {
+    font-size: {{ block.settings.card_title_size }}px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    line-height: 1.3;
+  }
+
+  .ai-banner-card-price-{{ ai_gen_id }} {
+    font-size: {{ block.settings.card_price_size }}px;
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+
+  .ai-banner-card-button-{{ ai_gen_id }} {
+    background-color: {{ block.settings.button_bg_color }};
+    color: {{ block.settings.button_text_color }};
+    border: none;
+    padding: 12px 24px;
+    border-radius: {{ block.settings.button_border_radius }}px;
+    cursor: pointer;
+    font-size: {{ block.settings.button_text_size }}px;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    width: 100%;
+  }
+
+  .ai-banner-card-button-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.button_hover_color }};
+    transform: translateY(-1px);
+  }
+
+  .ai-banner-card-empty-{{ ai_gen_id }} {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-style: italic;
+  }
+
+  .ai-banner-overlay-{{ ai_gen_id }} {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .ai-banner-overlay-{{ ai_gen_id }}.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .ai-banner-text-content-{{ ai_gen_id }} {
+    margin-top: {{ block.settings.text_spacing }}px;
+    text-align: {{ block.settings.text_alignment }};
+    color: {{ block.settings.text_color }};
+  }
+
+  .ai-banner-text-content-{{ ai_gen_id }} * {
+    font-size: {{ block.settings.text_size }}px;
+    line-height: 1.5;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-banner-hotspot-button-{{ ai_gen_id }} {
+      width: calc({{ block.settings.hotspot_size }}px * 0.8);
+      height: calc({{ block.settings.hotspot_size }}px * 0.8);
+    }
+
+    .ai-banner-product-card-{{ ai_gen_id }} {
+      padding: 20px 16px;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .ai-banner-card-content-{{ ai_gen_id }} {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .ai-banner-card-image-{{ ai_gen_id }} {
+      width: 80px;
+      height: 80px;align-self: center;
+    }
+  }
+{% endstyle %}<banner-hotspots-{{ ai_gen_id }}
+  class="ai-banner-hotspots-{{ ai_gen_id }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-banner-image-wrapper-{{ ai_gen_id }}">
+    {% if block.settings.banner_image %}
+      <img
+        src="{{ block.settings.banner_image | image_url: width: 2000 }}"
+        alt="{{ block.settings.banner_image.alt | escape }}"
+        loading="lazy"
+        width="{{ block.settings.banner_image.width }}"
+        height="{{ block.settings.banner_image.height }}"
+        class="ai-banner-image-{{ ai_gen_id }}"
+      >
+    {% else %}
+      <div class="ai-banner-placeholder-{{ ai_gen_id }}">
+        {{ 'hero-apparel-1' | placeholder_svg_tag }}<div class="ai-banner-empty-state-{{ ai_gen_id }}">
+          Add a banner image to get started
+        </div>
+      </div>
+    {% endif %}
+
+    {% for i in (1..2) %}
+      {% liquid
+        assign hotspot_enabled_key = 'hotspot_' | append: i | append: '_enabled'
+        assign hotspot_x_key = 'hotspot_' | append: i | append: '_x'
+        assign hotspot_y_key = 'hotspot_' | append: i | append: '_y'
+        assign product_key = 'hotspot_' | append: i | append: '_product'
+
+        assign hotspot_enabled = block.settings[hotspot_enabled_key]
+        assign hotspot_x = block.settings[hotspot_x_key]
+        assign hotspot_y = block.settings[hotspot_y_key]
+        assign product = block.settings[product_key]%}
+
+      {% if hotspot_enabled %}
+        <div
+          class="ai-banner-hotspot-{{ ai_gen_id }}"
+          style="
+            --ai-hotspot-x-{{ ai_gen_id }}: {{ hotspot_x }}%;
+            --ai-hotspot-y-{{ ai_gen_id }}: {{ hotspot_y }}%;
+          "
+          data-hotspot-id="{{ i }}"
+        >
+          <button
+            class="ai-banner-hotspot-button-{{ ai_gen_id }}"
+            aria-label="View product details"
+            data-product-id="{{ product.id }}">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {% if block.settings.text_content != blank %}
+    <div class="ai-banner-text-content-{{ ai_gen_id }}">
+      {{ block.settings.text_content }}
+    </div>
+  {% endif %}
+
+  <div class="ai-banner-overlay-{{ ai_gen_id }}"></div>
+
+  <div class="ai-banner-product-card-{{ ai_gen_id }}">
+    <div class="ai-banner-card-header-{{ ai_gen_id }}">
+      <div></div>
+      <button
+        class="ai-banner-card-close-{{ ai_gen_id }}"
+        aria-label="Close product card"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="ai-banner-card-content-{{ ai_gen_id }}">
+      <div class="ai-banner-card-image-{{ ai_gen_id }}">
+        <div class="ai-banner-card-image-placeholder-{{ ai_gen_id }}">
+          {{ 'product-1' | placeholder_svg_tag }}
+        </div>
+      </div>
+
+      <div class="ai-banner-card-info-{{ ai_gen_id }}">
+        <h3 class="ai-banner-card-title-{{ ai_gen_id }}">Product Title</h3>
+        <div class="ai-banner-card-price-{{ ai_gen_id }}">$0.00</div>
+        <button class="ai-banner-card-button-{{ ai_gen_id }}">
+          {{ block.settings.button_text }}
+        </button>
+      </div>
+    </div>
+  </div>
+</banner-hotspots-{{ ai_gen_id }}><script>
+  (function() {
+    class BannerHotspots{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.products = {
+          {% for i in (1..2) %}
+            {% liquid
+              assign hotspot_enabled_key = 'hotspot_' | append: i | append: '_enabled'
+              assign product_key = 'hotspot_' | append: i | append: '_product'
+              assign hotspot_enabled = block.settings[hotspot_enabled_key]
+              assign product = block.settings[product_key]
+            %}
+            {% if hotspot_enabled and product != blank %}
+              '{{ product.id }}': {
+                id: {{ product.id }},
+                title: {{ product.title | json }},
+                price: {{ product.price | money | json }},
+                url: {{ product.url | json }},
+                image: {% if product.featured_image %}{{ product.featured_image | image_url: width: 200 | json }}{% else %}null{% endif %}
+              }{% unless forloop.last %},{% endunless %}
+            {% endif %}
+          {% endfor %}
+        };
+      }
+
+      connectedCallback() {
+        this.hotspots = this.querySelectorAll('.ai-banner-hotspot-button-{{ ai_gen_id }}');
+        this.productCard = this.querySelector('.ai-banner-product-card-{{ ai_gen_id }}');
+        this.overlay = this.querySelector('.ai-banner-overlay-{{ ai_gen_id }}');
+        this.closeButton = this.querySelector('.ai-banner-card-close-{{ ai_gen_id }}');
+        this.addToCartButton = this.querySelector('.ai-banner-card-button-{{ ai_gen_id }}');
+
+        this.setupEventListeners();
+      }
+
+      setupEventListeners() {
+        this.hotspots.forEach((hotspot) => {
+          hotspot.addEventListener('click', (e) => {
+            const productId = e.currentTarget.dataset.productId;
+            this.showProductCard(productId);
+          });
+        });
+
+        this.closeButton.addEventListener('click', () => {
+          this.hideProductCard();
+        });
+
+        this.overlay.addEventListener('click', () => {
+          this.hideProductCard();
+        });
+
+        this.addToCartButton.addEventListener('click', () => {
+          const productUrl = this.addToCartButton.dataset.productUrl;
+          if (productUrl) {
+            window.location.href = productUrl;
+          }
+        });document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && this.productCard.classList.contains('active')) {
+            this.hideProductCard();
+          }
+        });
+      }
+
+      showProductCard(productId) {
+        const product = this.products[productId];
+        
+        if (!product) {
+          this.showEmptyCard();
+          return;
+        }
+
+        const cardImage = this.productCard.querySelector('.ai-banner-card-image-{{ ai_gen_id }}');
+        const cardTitle = this.productCard.querySelector('.ai-banner-card-title-{{ ai_gen_id }}');
+        const cardPrice = this.productCard.querySelector('.ai-banner-card-price-{{ ai_gen_id }}');
+
+        if (product.image) {
+          cardImage.innerHTML = `<img src="${product.image}" alt="${product.title}" loading="lazy">`;
+        } else {
+          cardImage.innerHTML = `<div class="ai-banner-card-image-placeholder-{{ ai_gen_id }}">${'{{ "product-1" | placeholder_svg_tag }}'}</div>`;
+        }
+
+        cardTitle.textContent = product.title;
+        cardPrice.textContent = product.price;
+        this.addToCartButton.dataset.productUrl = product.url;
+
+        this.productCard.classList.add('active');
+        this.overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
+      showEmptyCard() {
+        const cardContent = this.productCard.querySelector('.ai-banner-card-content-{{ ai_gen_id }}');
+        cardContent.innerHTML = '<div class="ai-banner-card-empty-{{ ai_gen_id }}">No product selected for this hotspot</div>';
+        
+        this.productCard.classList.add('active');
+        this.overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
+      hideProductCard() {
+        this.productCard.classList.remove('active');
+        this.overlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    customElements.define('banner-hotspots-{{ ai_gen_id }}', BannerHotspots{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Banner hotspots",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Banner image"
+    },
+    {
+      "type": "image_picker",
+      "id": "banner_image",
+      "label": "Banner image"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot style"
+    },
+    {
+      "type": "range",
+      "id": "hotspot_size",
+      "min": 20,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Hotspot size",
+      "default": 40
+    },
+    {
+      "type": "color",
+      "id": "hotspot_color",
+      "label": "Hotspot background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "hotspot_border_color",
+      "label": "Hotspot border",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "hotspot_icon_color",
+      "label": "Hotspot icon",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Product card style"
+    },
+    {
+      "type": "color",
+      "id": "card_bg_color",
+      "label": "Card background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "card_text_color",
+      "label": "Card text",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "card_border_radius",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Card border radius",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "card_title_size",
+      "min": 14,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Title size",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "card_price_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Price size",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "Button style"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "View product"
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Button background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_color",
+      "label": "Button hover",
+      "default": "#333333"
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "label": "Button border radius",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "button_text_size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "label": "Button text size",
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "Hotspot 1"
+    },
+    {
+      "type": "checkbox",
+      "id": "hotspot_1_enabled",
+      "label": "Enable hotspot 1",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "hotspot_1_x",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "hotspot_1_y",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 40
+    },
+    {
+      "type": "product",
+      "id": "hotspot_1_product",
+      "label": "Product"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot 2"
+    },
+    {
+      "type": "checkbox",
+      "id": "hotspot_2_enabled",
+      "label": "Enable hotspot 2",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "hotspot_2_x",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "hotspot_2_y",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 60
+    },
+    {
+      "type": "product",
+      "id": "hotspot_2_product",
+      "label": "Product"
+    },
+    {
+      "type": "header",
+      "content": "Text content"
+    },
+    {
+      "type": "richtext",
+      "id": "text_content",
+      "label": "Rich text content"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Text size",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "text_spacing",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "Text spacing",
+      "default": 24
+    }
+  ],
+  "presets": [
+    {
+      "name": "Banner hotspots"
+    }
+  ]
+}
+{% endschema %}

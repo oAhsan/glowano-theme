@@ -1,0 +1,753 @@
+{% doc %}
+  @prompt
+    Create a custom Shopify section for a banner image with two clickable animated hotspots.
+    
+    Hotspots should have a subtle pulsing animation to attract attention without being distracting.
+    
+    When a hotspot is clicked, a sleek slide-in product card should appear from the bottom of the screen.
+    
+    The slide-in card must include:
+    
+    Product image (average/medium size, not fullscreen).
+    
+    Product title.
+    
+    Product price.
+    
+    Add-to-cart button.
+    
+    A close ❌ button in the top-right of the card.
+    
+    Ability to close the card by tapping anywhere outside the card.
+    
+    Both the product image and the product title should be clickable links to the product page.
+    
+    Theme editor customization options:
+    
+    Banner background image.
+    
+    Hotspot positions (x, y).
+    
+    Assign products to hotspots.
+    
+    Background color, text size, button style for the card.
+    
+    Behavior:
+    
+    Hotspots must stay fixed in position on the banner, even when resizing the screen.
+    
+    Below the banner image, include a customizable rich text area for brand messaging or product highlights.
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-banner-hotspots-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .ai-banner-image-wrapper-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .ai-banner-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .ai-banner-placeholder-{{ ai_gen_id }} {
+    background-color: #f4f4f4;
+    width: 100%;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .ai-banner-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    max-width: 500px;
+    max-height: 400px;
+  }
+
+  .ai-banner-empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .ai-hotspot-{{ ai_gen_id }} {
+    position: absolute;
+    top: var(--ai-hotspot-y-{{ ai_gen_id }});
+    left: var(--ai-hotspot-x-{{ ai_gen_id }});
+    transform: translate(-50%, -50%);
+    z-index: 2;
+  }
+
+  .ai-hotspot-button-{{ ai_gen_id }} {
+    width: {{ block.settings.hotspot_size }}px;
+    height: {{ block.settings.hotspot_size }}px;
+    border-radius: 50%;
+    background-color: {{ block.settings.hotspot_color }};
+    border: 2px solid {{ block.settings.hotspot_border_color }};
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: {{ block.settings.hotspot_icon_color }};
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;animation: ai-hotspot-pulse-{{ ai_gen_id }} 2s infinite;
+  }
+
+  .ai-hotspot-button-{{ ai_gen_id }}:hover {
+    transform: scale(1.1);
+  }
+
+  .ai-hotspot-button-{{ ai_gen_id }} svg {
+    width: calc({{ block.settings.hotspot_size }}px * 0.5);
+    height: calc({{ block.settings.hotspot_size }}px * 0.5);
+  }
+
+  @keyframes ai-hotspot-pulse-{{ ai_gen_id }} {
+    0% {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 0 {{ block.settings.hotspot_color }};
+    }
+    70% {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 10px rgba(0, 0, 0, 0);
+    }
+    100% {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+  }
+
+  .ai-product-card-overlay-{{ ai_gen_id }} {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;}
+
+  .ai-product-card-overlay-{{ ai_gen_id }}.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .ai-product-card-{{ ai_gen_id }} {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    width: 90%;
+    max-width: 400px;
+    background-color: {{ block.settings.card_bg_color }};
+    border-radius: 16px 16px 0 0;
+    padding: 24px;
+    z-index: 1001;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.2);
+  }
+
+  .ai-product-card-{{ ai_gen_id }}.active {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .ai-product-card-close-{{ ai_gen_id }} {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: {{ block.settings.card_text_color }};
+    opacity: 0.7;
+    border-radius: 50%;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+  }
+
+  .ai-product-card-close-{{ ai_gen_id }}:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .ai-product-card-content-{{ ai_gen_id }} {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-right: 40px;
+  }
+
+  .ai-product-image-{{ ai_gen_id }} {
+    width: 120px;
+    height: 120px;
+    align-self: center;
+    flex-shrink: 0;
+  }
+
+  .ai-product-image-{{ ai_gen_id }} img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;border-radius: 8px;
+  }
+
+  .ai-product-image-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+  }
+
+  .ai-product-info-{{ ai_gen_id }} {
+    text-align: center;
+  }
+
+  .ai-product-title-{{ ai_gen_id }} {
+    font-size: {{ block.settings.card_title_size }}px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: {{ block.settings.card_text_color }};
+    text-decoration: none;
+    display: block;
+  }
+
+  .ai-product-title-{{ ai_gen_id }}:hover {
+    text-decoration: underline;
+  }
+
+  .ai-product-price-{{ ai_gen_id }} {
+    font-size: {{ block.settings.card_price_size }}px;
+    margin-bottom: 16px;
+    color: {{ block.settings.card_text_color }};
+  }
+
+  .ai-add-to-cart-button-{{ ai_gen_id }} {
+    width: 100%;
+    padding: 12px 24px;
+    background-color: {{ block.settings.card_button_color }};
+    color: {{ block.settings.card_button_text_color }};
+    border: none;
+    border-radius: {{ block.settings.card_button_radius }}px;
+    font-size: {{ block.settings.card_button_size }}px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;}
+
+  .ai-add-to-cart-button-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.card_button_hover_color }};
+    transform: translateY(-2px);
+  }
+
+  .ai-empty-product-{{ ai_gen_id }} {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-style: italic;
+  }
+
+  .ai-brand-message-{{ ai_gen_id }} {
+    padding: 40px 20px;
+    text-align: center;
+    color: {{ block.settings.message_text_color }};
+    background-color: {{ block.settings.message_bg_color }};
+  }
+
+  .ai-brand-message-{{ ai_gen_id }} p {
+    margin: 0;
+    font-size: {{ block.settings.message_text_size }}px;
+    line-height: 1.6;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-hotspot-button-{{ ai_gen_id }} {
+      width: {{ block.settings.hotspot_size | times: 0.8 }}px;
+      height: {{ block.settings.hotspot_size | times: 0.8 }}px;
+    }
+
+    .ai-product-card-{{ ai_gen_id }} {
+      width: 95%;
+      padding: 20px;
+    }
+
+    .ai-product-image-{{ ai_gen_id }} {
+      width: 100px;
+      height: 100px;
+    }
+  }
+{% endstyle %}<banner-hotspots-{{ ai_gen_id }}
+  class="ai-banner-hotspots-{{ ai_gen_id }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-banner-image-wrapper-{{ ai_gen_id }}">
+    {% if block.settings.banner_image %}
+      <img
+        src="{{ block.settings.banner_image | image_url: width: 2000 }}"
+        alt="{{ block.settings.banner_image.alt | escape }}"
+        loading="lazy"
+        width="{{ block.settings.banner_image.width }}"
+        height="{{ block.settings.banner_image.height }}"
+        class="ai-banner-image-{{ ai_gen_id }}"
+      >
+    {% else %}
+      <div class="ai-banner-placeholder-{{ ai_gen_id }}">
+        {{ 'hero-apparel-1' | placeholder_svg_tag }}<div class="ai-banner-empty-state-{{ ai_gen_id }}">
+          Add a banner image to get started
+        </div>
+      </div>
+    {% endif %}
+
+    {% for i in (1..2) %}
+      {% liquid
+        assign hotspot_enabled_key = 'hotspot_' | append: i | append: '_enabled'
+        assign hotspot_x_key = 'hotspot_' | append: i | append: '_x'
+        assign hotspot_y_key = 'hotspot_' | append: i | append: '_y'
+        assign product_key = 'hotspot_' | append: i | append: '_product'
+
+        assign hotspot_enabled = block.settings[hotspot_enabled_key]
+        assign hotspot_x = block.settings[hotspot_x_key]
+        assign hotspot_y = block.settings[hotspot_y_key]
+        assign product = block.settings[product_key]%}
+
+      {% if hotspot_enabled %}
+        <div
+          class="ai-hotspot-{{ ai_gen_id }}"
+          style="
+            --ai-hotspot-x-{{ ai_gen_id }}: {{ hotspot_x }}%;
+            --ai-hotspot-y-{{ ai_gen_id }}: {{ hotspot_y }}%;
+          "
+          data-hotspot-id="{{ i }}"
+        >
+          <button
+            class="ai-hotspot-button-{{ ai_gen_id }}"
+            aria-label="View product details"
+            data-product-id="{{ product.id }}">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {% if block.settings.brand_message != blank %}
+    <div class="ai-brand-message-{{ ai_gen_id }}">
+      {{ block.settings.brand_message }}
+    </div>
+  {% endif %}
+
+  <div class="ai-product-card-overlay-{{ ai_gen_id }}" data-overlay></div>
+
+  {% for i in (1..2) %}
+    {% liquid
+      assign hotspot_enabled_key = 'hotspot_' | append: i | append: '_enabled'
+      assign product_key = 'hotspot_' | append: i | append: '_product'
+      assign hotspot_enabled = block.settings[hotspot_enabled_key]
+      assign product = block.settings[product_key]
+    %}
+
+    {% if hotspot_enabled %}
+      <div
+        class="ai-product-card-{{ ai_gen_id }}"
+        data-product-card="{{ i }}"
+      >
+        <button
+          class="ai-product-card-close-{{ ai_gen_id }}"
+          aria-label="Close product card"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <div class="ai-product-card-content-{{ ai_gen_id }}">
+          {% if product != blank %}
+            <div class="ai-product-image-{{ ai_gen_id }}">
+              {% if product.featured_image %}
+                <a href="{{ product.url }}">
+                  <img
+                    src="{{ product.featured_image | image_url: width: 240 }}"
+                    alt="{{ product.featured_image.alt | escape }}"
+                    width="240"
+                    height="240"
+                    loading="lazy"
+                  >
+                </a>
+              {% else %}
+                <div class="ai-product-image-placeholder-{{ ai_gen_id }}">
+                  {{ 'product-apparel-1' | placeholder_svg_tag }}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="ai-product-info-{{ ai_gen_id }}">
+              <a href="{{ product.url }}" class="ai-product-title-{{ ai_gen_id }}">
+                {{ product.title }}
+              </a>
+              <div class="ai-product-price-{{ ai_gen_id }}">
+                {{ product.price | money }}
+              </div>
+              <form action="/cart/add" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                <button
+                  type="submit"
+                  class="ai-add-to-cart-button-{{ ai_gen_id }}"
+                  {% unless product.available %}disabled{% endunless %}
+                >
+                  {% if product.available %}
+                    Add to cart
+                  {% else %}
+                Sold out
+                  {% endif %}
+                </button>
+              </form>
+            </div>
+          {% else %}
+            <div class="ai-empty-product-{{ ai_gen_id }}">
+              Select a product for this hotspot
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+</banner-hotspots-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class BannerHotspots{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        this.hotspots = this.querySelectorAll('.ai-hotspot-{{ ai_gen_id }}');
+        this.overlay = this.querySelector('[data-overlay]');
+        this.productCards = this.querySelectorAll('[data-product-card]');
+        this.setupEventListeners();
+      }
+
+      setupEventListeners() {
+        this.hotspots.forEach((hotspot) => {
+          const button = hotspot.querySelector('.ai-hotspot-button-{{ ai_gen_id }}');
+          const hotspotId = hotspot.dataset.hotspotId;
+
+          button.addEventListener('click', () => {
+            this.showProductCard(hotspotId);
+          });
+        });
+
+        this.productCards.forEach((card) => {
+          const closeButton = card.querySelector('.ai-product-card-close-{{ ai_gen_id }}');
+          
+          closeButton.addEventListener('click', () => {
+            this.hideAllCards();
+          });
+        });
+
+        this.overlay.addEventListener('click', () => {
+          this.hideAllCards();
+        });document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') {
+            this.hideAllCards();
+          }
+        });
+      }
+
+      showProductCard(hotspotId) {
+        this.hideAllCards();
+        
+        const targetCard = this.querySelector(`[data-product-card="${hotspotId}"]`);
+        if (targetCard) {
+          this.overlay.classList.add('active');
+          targetCard.classList.add('active');document.body.style.overflow = 'hidden';
+        }
+      }
+
+      hideAllCards() {
+        this.overlay.classList.remove('active');
+        this.productCards.forEach((card) => {
+          card.classList.remove('active');
+        });
+        document.body.style.overflow = '';
+      }
+    }
+
+    customElements.define('banner-hotspots-{{ ai_gen_id }}', BannerHotspots{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Banner hotspots",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Banner image"
+    },
+    {
+      "type": "image_picker",
+      "id": "banner_image",
+      "label": "Banner image"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot style"
+    },
+    {
+      "type": "range",
+      "id": "hotspot_size",
+      "min": 30,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Hotspot size",
+      "default": 40
+    },
+    {
+      "type": "color",
+      "id": "hotspot_color",
+      "label": "Hotspot background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "hotspot_border_color",
+      "label": "Hotspot border",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "hotspot_icon_color",
+      "label": "Hotspot icon",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot 1"
+    },
+    {
+      "type": "checkbox",
+      "id": "hotspot_1_enabled",
+      "label": "Enable hotspot 1",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "hotspot_1_x",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "hotspot_1_y",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 40
+    },
+    {
+      "type": "product",
+      "id": "hotspot_1_product",
+      "label": "Product"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot 2"
+    },
+    {
+      "type": "checkbox",
+      "id": "hotspot_2_enabled",
+      "label": "Enable hotspot 2",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "hotspot_2_x",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "hotspot_2_y",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 60
+    },
+    {
+      "type": "product",
+      "id": "hotspot_2_product",
+      "label": "Product"
+    },
+    {
+      "type": "header",
+      "content": "Product card style"
+    },
+    {
+      "type": "color",
+      "id": "card_bg_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "card_text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "card_title_size",
+      "min": 14,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Title size",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "card_price_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Price size",
+      "default": 16
+    },
+    {
+      "type": "color",
+      "id": "card_button_color",
+      "label": "Button background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "card_button_hover_color",
+      "label": "Button hover background",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "card_button_text_color",
+      "label": "Button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "card_button_size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "label": "Button text size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "card_button_radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Button border radius",
+      "default": 6
+    },
+    {
+      "type": "header",
+      "content": "Brand message"
+    },
+    {
+      "type": "richtext",
+      "id": "brand_message",
+      "label": "Brand message",
+      "default": "<p>Discover our featured products with interactive hotspots</p>"
+    },
+    {
+      "type": "color",
+      "id": "message_bg_color",
+      "label": "Message background",
+      "default": "#f8f8f8"
+    },
+    {
+      "type": "color",
+      "id": "message_text_color",
+      "label": "Message text color",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "message_text_size",
+      "min": 14,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Message text size",
+      "default": 16
+    }
+  ],
+  "presets": [
+    {
+      "name": "Banner hotspots"
+    }
+  ]
+}
+{% endschema %}

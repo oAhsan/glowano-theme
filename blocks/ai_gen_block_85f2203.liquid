@@ -1,0 +1,679 @@
+{% doc %}
+  @prompt
+    Create a transparent header section that looks professional. The header should overlay the banner when the page loads. As the user scrolls, the header background smoothly turns solid (like white or black), the menu text color changes for readability, and the logo switches to a different version (dark/light). On hover, text color should also change with smooth animation. Keep it fully responsive, modern, and premium
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-header-{{ ai_gen_id }} {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: {{ block.settings.header_padding }}px 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: transparent;
+  }
+
+  .ai-header-{{ ai_gen_id }}.scrolled {
+    background-color: {{ block.settings.scrolled_bg_color }};
+    backdrop-filter: blur(10px);-webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);padding: {{ block.settings.scrolled_padding }}px 0;
+  }
+
+  .ai-header-container-{{ ai_gen_id }} {
+    max-width: {{ settings.page_width }}px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .ai-header-logo-{{ ai_gen_id }} {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    z-index: 1001;
+  }
+
+  .ai-header-logo-image-{{ ai_gen_id }} {
+    height: {{ block.settings.logo_height }}px;
+    width: auto;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .ai-header-{{ ai_gen_id }}.scrolled .ai-header-logo-image-{{ ai_gen_id }} {
+    height: {{ block.settings.scrolled_logo_height }}px;
+  }
+
+  .ai-header-nav-{{ ai_gen_id }} {
+    display: flex;
+    align-items: center;
+    gap: {{ block.settings.nav_spacing }}px;
+  }
+
+  .ai-header-nav-link-{{ ai_gen_id }} {
+    color: {{ block.settings.transparent_text_color }};
+    text-decoration: none;
+    font-size: {{ block.settings.nav_font_size }}px;
+    font-weight: {{ block.settings.nav_font_weight }};
+    padding: 12px 16px;
+    border-radius: {{ block.settings.nav_border_radius }}px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ai-header-nav-link-{{ ai_gen_id }}:hover {
+    color: {{ block.settings.transparent_hover_color }};
+    background-color: {{ block.settings.transparent_hover_bg }};
+    transform: translateY(-2px);
+  }
+
+  .ai-header-{{ ai_gen_id }}.scrolled .ai-header-nav-link-{{ ai_gen_id }} {
+    color: {{ block.settings.scrolled_text_color }};
+  }
+
+  .ai-header-{{ ai_gen_id }}.scrolled .ai-header-nav-link-{{ ai_gen_id }}:hover {
+    color: {{ block.settings.scrolled_hover_color }};
+    background-color: {{ block.settings.scrolled_hover_bg }};
+  }
+
+  .ai-header-mobile-toggle-{{ ai_gen_id }} {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    z-index: 1001;
+    position: relative;
+  }
+
+  .ai-header-hamburger-{{ ai_gen_id }} {
+    width: 24px;
+    height: 18px;
+    position: relative;
+    transform: rotate(0deg);
+    transition: 0.3s ease-in-out;
+  }
+
+  .ai-header-hamburger-{{ ai_gen_id }} span {
+    display: block;
+    position: absolute;
+    height: 2px;
+    width: 100%;
+    background: {{ block.settings.transparent_text_color }};
+    border-radius: 2px;
+    opacity: 1;
+    left: 0;
+    transform: rotate(0deg);
+    transition: 0.25s ease-in-out;
+  }
+
+  .ai-header-{{ ai_gen_id }}.scrolled .ai-header-hamburger-{{ ai_gen_id }} span {
+    background: {{ block.settings.scrolled_text_color }};
+  }
+
+  .ai-header-hamburger-{{ ai_gen_id }} span:nth-child(1) {
+    top: 0px;
+  }
+
+  .ai-header-hamburger-{{ ai_gen_id }} span:nth-child(2) {
+    top: 8px;
+  }
+
+  .ai-header-hamburger-{{ ai_gen_id }} span:nth-child(3) {
+    top: 16px;
+  }
+
+  .ai-header-mobile-toggle-{{ ai_gen_id }}.active .ai-header-hamburger-{{ ai_gen_id }} span:nth-child(1) {
+    top: 8px;transform: rotate(135deg);
+  }
+
+  .ai-header-mobile-toggle-{{ ai_gen_id }}.active .ai-header-hamburger-{{ ai_gen_id }} span:nth-child(2) {
+    opacity: 0;
+    left: -60px;
+  }
+
+  .ai-header-mobile-toggle-{{ ai_gen_id }}.active .ai-header-hamburger-{{ ai_gen_id }} span:nth-child(3) {
+    top: 8px;
+    transform: rotate(-135deg);
+  }
+
+  .ai-header-mobile-menu-{{ ai_gen_id }} {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: {{ block.settings.mobile_menu_bg }};
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transform: translateY(-100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    padding: 80px 20px 40px;
+  }
+
+  .ai-header-mobile-menu-{{ ai_gen_id }}.active {
+    transform: translateY(0);
+  }
+
+  .ai-header-mobile-nav-link-{{ ai_gen_id }} {
+    color: {{ block.settings.mobile_text_color }};
+    text-decoration: none;
+    font-size: {{ block.settings.mobile_font_size }}px;
+    font-weight: {{ block.settings.nav_font_weight }};
+    padding: 16px 24px;
+    border-radius: {{ block.settings.nav_border_radius }}px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    min-width: 200px;
+  }
+
+  .ai-header-mobile-nav-link-{{ ai_gen_id }}:hover {
+    color: {{ block.settings.mobile_hover_color }};
+    background-color: {{ block.settings.mobile_hover_bg }};
+    transform: scale(1.05);
+  }
+
+  @media screen and (max-width: 768px) {
+    .ai-header-nav-{{ ai_gen_id }} {
+      display: none;
+    }
+
+    .ai-header-mobile-toggle-{{ ai_gen_id }} {
+      display: block;
+    }
+
+    .ai-header-container-{{ ai_gen_id }} {
+      padding: 0 16px;
+    }
+
+    .ai-header-logo-image-{{ ai_gen_id }} {
+      height: {{ block.settings.mobile_logo_height }}px;
+    }
+
+    .ai-header-{{ ai_gen_id }}.scrolled .ai-header-logo-image-{{ ai_gen_id }} {
+      height: {{ block.settings.mobile_scrolled_logo_height }}px;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .ai-header-container-{{ ai_gen_id }} {
+      padding: 0 12px;
+    }
+  }
+{% endstyle %}<header-{{ ai_gen_id }} class="ai-header-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-header-container-{{ ai_gen_id }}">
+    <a href="/" class="ai-header-logo-{{ ai_gen_id }}">
+      {% if block.settings.transparent_logo %}
+        <img
+          src="{{ block.settings.transparent_logo | image_url: width: 400}}"
+          alt="{{ shop.name }}"
+          class="ai-header-logo-image-{{ ai_gen_id }} ai-header-logo-transparent-{{ ai_gen_id }}"width="{{ block.settings.transparent_logo.width }}"
+          height="{{ block.settings.transparent_logo.height }}"
+          loading="eager"
+        >
+      {% else %}
+        <div class="ai-header-logo-placeholder-{{ ai_gen_id }}">
+          {{'image' | placeholder_svg_tag }}
+        </div>
+      {% endif %}
+      
+      {% if block.settings.scrolled_logo %}
+        <img
+          src="{{ block.settings.scrolled_logo | image_url: width: 400 }}"
+          alt="{{ shop.name }}"
+          class="ai-header-logo-image-{{ ai_gen_id }} ai-header-logo-scrolled-{{ ai_gen_id }}"
+          width="{{ block.settings.scrolled_logo.width }}"
+          height="{{ block.settings.scrolled_logo.height }}"
+          loading="eager"
+          style="display: none;"
+        >
+      {% endif %}
+    </a>
+
+    <nav class="ai-header-nav-{{ ai_gen_id }}">
+      {% for i in (1..6) %}
+        {% assign link_text_key = 'nav_link_' | append: i | append: '_text' %}
+        {% assign link_url_key = 'nav_link_' | append: i | append: '_url' %}
+        {% assign link_text = block.settings[link_text_key] %}
+        {% assign link_url = block.settings[link_url_key] %}
+        
+        {% if link_text != blank %}
+          <a href="{{ link_url | default: '#' }}" class="ai-header-nav-link-{{ ai_gen_id }}">
+            {{ link_text }}
+          </a>
+        {% endif %}
+      {% endfor %}
+    </nav>
+
+    <button class="ai-header-mobile-toggle-{{ ai_gen_id }}" aria-label="Toggle mobile menu">
+      <div class="ai-header-hamburger-{{ ai_gen_id }}">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </button>
+  </div>
+
+  <div class="ai-header-mobile-menu-{{ ai_gen_id }}">
+    {% for i in (1..6) %}
+      {% assign link_text_key = 'nav_link_' | append: i | append: '_text' %}
+      {% assign link_url_key = 'nav_link_' | append: i | append: '_url' %}
+      {% assign link_text = block.settings[link_text_key] %}
+      {% assign link_url = block.settings[link_url_key] %}
+      
+      {% if link_text != blank %}
+        <a href="{{ link_url | default: '#' }}" class="ai-header-mobile-nav-link-{{ ai_gen_id }}">
+          {{ link_text }}
+        </a>
+      {% endif %}
+    {% endfor %}
+  </div>
+</header-{{ ai_gen_id }}>
+
+<script>
+(function() {
+  class Header{{ ai_gen_id }} extends HTMLElement {
+    constructor() {
+      super();
+      this.header = this;
+      this.mobileToggle = this.querySelector('.ai-header-mobile-toggle-{{ ai_gen_id }}');
+      this.mobileMenu = this.querySelector('.ai-header-mobile-menu-{{ ai_gen_id }}');
+      this.transparentLogo = this.querySelector('.ai-header-logo-transparent-{{ ai_gen_id }}');
+      this.scrolledLogo = this.querySelector('.ai-header-logo-scrolled-{{ ai_gen_id }}');
+      this.mobileNavLinks = this.querySelectorAll('.ai-header-mobile-nav-link-{{ ai_gen_id }}');
+      this.scrollThreshold = 50;
+      this.isScrolled = false;
+    }
+
+    connectedCallback() {
+      this.setupEventListeners();
+      this.handleScroll();
+    }
+
+    setupEventListeners() {
+      window.addEventListener('scroll', this.handleScroll.bind(this));
+      
+      if (this.mobileToggle) {
+        this.mobileToggle.addEventListener('click', this.toggleMobileMenu.bind(this));
+      }
+
+      this.mobileNavLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          this.closeMobileMenu();
+        });
+      });document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          this.closeMobileMenu();
+        }
+      });
+    }
+
+    handleScroll() {
+      const scrollY = window.scrollY;
+      const shouldBeScrolled = scrollY > this.scrollThreshold;
+
+      if (shouldBeScrolled !== this.isScrolled) {
+        this.isScrolled = shouldBeScrolled;
+        
+        if (this.isScrolled) {
+          this.header.classList.add('scrolled');
+          this.switchToScrolledLogo();
+        } else {
+          this.header.classList.remove('scrolled');
+          this.switchToTransparentLogo();
+        }
+      }
+    }
+
+    switchToScrolledLogo() {
+      if (this.transparentLogo && this.scrolledLogo) {
+        this.transparentLogo.style.display = 'none';
+        this.scrolledLogo.style.display = 'block';
+      }
+    }
+
+    switchToTransparentLogo() {
+      if (this.transparentLogo && this.scrolledLogo) {
+        this.transparentLogo.style.display = 'block';
+        this.scrolledLogo.style.display = 'none';
+      }
+    }
+
+    toggleMobileMenu() {
+      const isActive = this.mobileToggle.classList.contains('active');
+      
+      if (isActive) {
+        this.closeMobileMenu();
+      } else {
+        this.openMobileMenu();
+      }
+    }
+
+    openMobileMenu() {
+      this.mobileToggle.classList.add('active');
+      this.mobileMenu.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    closeMobileMenu() {
+      this.mobileToggle.classList.remove('active');
+      this.mobileMenu.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+
+  customElements.define('header-{{ ai_gen_id }}', Header{{ ai_gen_id }});
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Transparent header",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Logo settings"
+    },
+    {
+      "type": "image_picker",
+      "id": "transparent_logo",
+      "label": "Transparent state logo"
+    },
+    {
+      "type": "image_picker",
+      "id": "scrolled_logo",
+      "label": "Scrolled state logo"
+    },
+    {
+      "type": "range",
+      "id": "logo_height",
+      "min": 30,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "label": "Logo height",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "scrolled_logo_height",
+      "min": 20,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "label": "Scrolled logo height",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "mobile_logo_height",
+      "min": 25,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Mobile logo height",
+      "default": 35
+    },
+    {
+      "type": "range",
+      "id": "mobile_scrolled_logo_height",
+      "min": 20,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Mobile scrolled logo height",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Navigation links"
+    },
+    {
+      "type": "text",
+      "id": "nav_link_1_text",
+      "label": "Link 1 text",
+      "default": "Home"
+    },
+    {
+      "type": "url",
+      "id": "nav_link_1_url",
+      "label": "Link 1 URL"
+    },
+    {
+      "type": "text",
+      "id": "nav_link_2_text",
+      "label": "Link 2 text",
+      "default": "Shop"
+    },
+    {
+      "type": "url",
+      "id": "nav_link_2_url",
+      "label": "Link 2 URL"
+    },
+    {
+      "type": "text",
+      "id": "nav_link_3_text",
+      "label": "Link 3 text",
+      "default": "About"
+    },
+    {
+      "type": "url",
+      "id": "nav_link_3_url",
+      "label": "Link 3 URL"
+    },
+    {
+      "type": "text",
+      "id": "nav_link_4_text",
+      "label": "Link 4 text",
+      "default": "Contact"
+    },
+    {
+      "type": "url",
+      "id": "nav_link_4_url",
+      "label": "Link 4 URL"
+    },
+    {
+      "type": "text",
+      "id": "nav_link_5_text",
+      "label": "Link 5 text"
+    },
+    {
+      "type": "url",
+      "id": "nav_link_5_url",
+      "label": "Link 5 URL"
+    },
+    {
+      "type": "text",
+      "id": "nav_link_6_text",
+      "label": "Link 6 text"
+    },
+    {
+      "type": "url",
+      "id": "nav_link_6_url",
+      "label": "Link 6 URL"
+    },
+    {
+      "type": "header",
+      "content": "Transparent state colors"
+    },
+    {
+      "type": "color",
+      "id": "transparent_text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "transparent_hover_color",
+      "label": "Hover text color",
+      "default": "#f0f0f0"
+    },
+    {
+      "type": "color",
+      "id": "transparent_hover_bg",
+      "label": "Hover background",
+      "default": "rgba(255, 255, 255, 0.1)"
+    },
+    {
+      "type": "header",
+      "content": "Scrolled state colors"
+    },
+    {
+      "type": "color",
+      "id": "scrolled_bg_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "scrolled_text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "scrolled_hover_color",
+      "label": "Hover text color",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "scrolled_hover_bg",
+      "label": "Hover background",
+      "default": "rgba(0, 0, 0, 0.05)"
+    },
+    {
+      "type": "header",
+      "content": "Mobile menu colors"
+    },
+    {
+      "type": "color",
+      "id": "mobile_menu_bg",
+      "label": "Background color",
+      "default": "rgba(255, 255, 255, 0.95)"
+    },
+    {
+      "type": "color",
+      "id": "mobile_text_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "mobile_hover_color",
+      "label": "Hover text color",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "mobile_hover_bg",
+      "label": "Hover background",
+      "default": "rgba(0, 0, 0, 0.05)"
+    },
+    {
+      "type": "header",
+      "content": "Layout settings"
+    },
+    {
+      "type": "range",
+      "id": "header_padding",
+      "min": 10,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "label": "Header padding",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "scrolled_padding",
+      "min": 5,
+      "max": 30,
+      "step": 5,
+      "unit": "px",
+      "label": "Scrolled padding",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "nav_spacing",
+      "min": 10,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "Navigation spacing",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "nav_font_size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Navigation font size",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "mobile_font_size",
+      "min": 16,
+      "max": 28,
+      "step": 2,
+      "unit": "px",
+      "label": "Mobile font size",
+      "default": 20
+    },
+    {
+      "type": "select",
+      "id": "nav_font_weight",
+      "label": "Font weight",
+      "options": [
+        {
+          "value": "400",
+          "label": "Normal"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semi-bold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
+      ],
+      "default": "500"
+    },
+    {
+      "type": "range",
+      "id": "nav_border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "label": "Link border radius",
+      "default": 8
+    }
+  ],
+  "presets": [
+    {
+      "name": "Transparent header"
+    }
+  ]
+}
+{% endschema %}

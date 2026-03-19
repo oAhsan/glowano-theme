@@ -1,0 +1,223 @@
+{% doc %}
+  @prompt
+    Create a full-width rolling text (marquee) section.
+    Requirements:
+    
+    Bold large font (like 38–48px depending on theme scale)
+    
+    Smooth infinite horizontal scrolling animation
+    
+    Text repeats several times so it loops naturally
+    
+    Text centered vertically
+    
+    Clean minimalist style
+    
+    Supports custom text input from theme editor
+    
+    Option to control font size, speed, and text color
+    
+    Mobile responsive (slower on mobile to stay readable)
+    
+    No gaps or jerks in animation
+    
+    Light on performance (pure CSS, no JS if possible)
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-marquee-container-{{ ai_gen_id }} {
+    width: 100%;
+    overflow: hidden;
+    background-color: {{ block.settings.background_color }};
+    padding: {{ block.settings.vertical_padding }}px 0;
+    position: relative;
+  }
+
+  .ai-marquee-wrapper-{{ ai_gen_id }} {
+    display: flex;
+    width: fit-content;
+    animation: ai-marquee-scroll-{{ ai_gen_id }} {{ block.settings.animation_speed }}s linear infinite;
+  }
+
+  .ai-marquee-text-{{ ai_gen_id }} {
+    font-size: {{ block.settings.font_size }}px;
+    font-weight: {{ block.settings.font_weight }};
+    color: {{ block.settings.text_color }};
+    white-space: nowrap;
+    padding: 0 {{ block.settings.text_spacing }}px;
+    display: flex;
+    align-items: center;
+  }
+
+  @keyframes ai-marquee-scroll-{{ ai_gen_id }} {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (hover: hover) {
+    .ai-marquee-container-{{ ai_gen_id }}:hover .ai-marquee-wrapper-{{ ai_gen_id }} {
+      animation-play-state: paused;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-marquee-text-{{ ai_gen_id }} {
+      font-size: calc({{ block.settings.font_size }}px * 0.7);
+    }
+
+    .ai-marquee-wrapper-{{ ai_gen_id }} {
+      animation-duration: calc({{ block.settings.animation_speed }}s * 1.5);
+    }
+  }
+{% endstyle %}
+
+<div class="ai-marquee-container-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-marquee-wrapper-{{ ai_gen_id }}">
+    {% for i in (1..10) %}
+      <div class="ai-marquee-text-{{ ai_gen_id }}">
+        {{ block.settings.marquee_text }}
+        {% if block.settings.separator != blank %}
+          <span style="margin: 0 {{ block.settings.text_spacing }}px;">{{ block.settings.separator }}</span>
+        {% endif %}
+      </div>
+    {% endfor %}
+    {% for i in (1..10) %}
+      <div class="ai-marquee-text-{{ ai_gen_id }}">
+        {{ block.settings.marquee_text }}
+        {% if block.settings.separator != blank %}
+          <span style="margin: 0 {{ block.settings.text_spacing }}px;">{{ block.settings.separator }}</span>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Rolling text marquee",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "marquee_text",
+      "label": "Marquee text",
+      "default": "Free Shipping on Orders Over £50"
+    },
+    {
+      "type": "text",
+      "id": "separator",
+      "label": "Separator",
+      "default": "•"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "min": 20,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "label": "Font size",
+      "default": 42
+    },
+    {
+      "type": "select",
+      "id": "font_weight",
+      "label": "Font weight",
+      "options": [
+        {
+          "value": "400",
+          "label": "Normal"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semi bold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Extra bold"
+        }
+      ],
+      "default": "700"
+    },
+    {
+      "type": "header",
+      "content": "Animation"
+    },
+    {
+      "type": "range",
+      "id": "animation_speed",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "s",
+      "label": "Animation speed",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "text_spacing",
+      "min": 20,
+      "max": 100,
+      "step": 10,
+      "unit": "px",
+      "label": "Text spacing",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "vertical_padding",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "label": "Vertical padding",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#ffffff"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Rolling text marquee"
+    }
+  ]
+}
+{% endschema %}

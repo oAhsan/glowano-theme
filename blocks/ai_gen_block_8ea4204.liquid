@@ -1,0 +1,486 @@
+{% doc %}
+  @prompt
+    Create a custom section called "Glowano Interactive Banner".  
+    - Banner image as background (mobile upload only).  
+    - Add multiple animated hotspots that glow gold and pulse slightly.  
+    - Hotspots expand with a ripple animation when hovered/tapped.  
+    - Tooltip appears with luxury-styled text in a black box with golden border.  
+    - Works fully responsive (desktop & mobile).
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-glowano-banner-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    min-height: 400px;
+    overflow: hidden;
+    background-color: #f4f4f4;
+  }
+
+  .ai-glowano-banner__image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .ai-glowano-banner__placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f4f4f4;
+    position: relative;
+  }
+
+  .ai-glowano-banner__placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    max-width: 300px;
+    max-height: 300px;
+  }
+
+  .ai-glowano-banner__empty-state-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+  }
+
+  .ai-glowano-hotspot-{{ ai_gen_id }} {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .ai-glowano-hotspot__button-{{ ai_gen_id }} {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    border: 2px solid rgba(255, 215, 0, 0.8);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    position: relative;
+    animation: ai-glowano-pulse-{{ ai_gen_id }} 2s infinite;
+    transition: transform 0.3s ease;
+  }
+
+  .ai-glowano-hotspot__button-{{ ai_gen_id }}:hover {
+    transform: scale(1.2);
+    animation: ai-glowano-ripple-{{ ai_gen_id }} 0.6s ease-out;
+  }
+
+  .ai-glowano-hotspot__button-{{ ai_gen_id }}::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .ai-glowano-tooltip-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: calc(100% + 15px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #000;
+    color: #ffd700;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 2px solid #ffd700;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+    z-index: 3;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .ai-glowano-tooltip-{{ ai_gen_id }}::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: #ffd700;
+  }
+
+  .ai-glowano-hotspot-{{ ai_gen_id }}:hover .ai-glowano-tooltip-{{ ai_gen_id }} {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-5px);
+  }
+
+  @keyframes ai-glowano-pulse-{{ ai_gen_id }} {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.9);
+    }
+  }
+
+  @keyframes ai-glowano-ripple-{{ ai_gen_id }} {
+    0% {
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 0 0 rgba(255, 215, 0, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 0 20px rgba(255, 215, 0, 0);
+    }
+    100% {
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 0 0 rgba(255, 215, 0, 0);
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-glowano-banner-{{ ai_gen_id }} {
+      min-height: 300px;
+    }
+
+    .ai-glowano-banner__placeholder-{{ ai_gen_id }} {
+      height: 300px;
+    }
+
+    .ai-glowano-hotspot__button-{{ ai_gen_id }} {
+      width: 20px;
+      height: 20px;
+    }
+
+    .ai-glowano-hotspot__button-{{ ai_gen_id }}::before {
+      width: 6px;
+      height: 6px;
+    }
+
+    .ai-glowano-tooltip-{{ ai_gen_id }} {
+      font-size: 12px;padding: 8px 12px;
+    }
+  }
+{% endstyle %}
+
+<glowano-banner-{{ ai_gen_id }}
+  class="ai-glowano-banner-{{ ai_gen_id }}"
+  {{ block.shopify_attributes }}
+>
+  {% if block.settings.banner_image %}
+    <img
+      src="{{ block.settings.banner_image | image_url: width: 2000 }}"
+      alt="{{ block.settings.banner_image.alt | escape }}"
+      class="ai-glowano-banner__image-{{ ai_gen_id }}"loading="lazy"
+      width="{{ block.settings.banner_image.width }}"
+      height="{{ block.settings.banner_image.height }}"
+    >
+  {% else %}
+    <div class="ai-glowano-banner__placeholder-{{ ai_gen_id }}">
+      {{ 'hero-apparel-1' | placeholder_svg_tag }}
+      <div class="ai-glowano-banner__empty-state-{{ ai_gen_id }}">
+        Add a banner image to get started
+      </div>
+    </div>
+  {% endif %}
+
+  {% for i in (1..5) %}
+    {% liquid
+      assign hotspot_enabled_key = 'hotspot_' | append: i | append: '_enabled'
+      assign hotspot_x_key = 'hotspot_' | append: i | append: '_x'
+      assign hotspot_y_key = 'hotspot_' | append: i | append: '_y'
+      assign hotspot_text_key = 'hotspot_' | append: i | append: '_text'
+
+      assign hotspot_enabled = block.settings[hotspot_enabled_key]
+      assign hotspot_x = block.settings[hotspot_x_key]
+      assign hotspot_y = block.settings[hotspot_y_key]
+      assign hotspot_text = block.settings[hotspot_text_key]
+    %}
+
+    {% if hotspot_enabled and hotspot_text != blank %}
+      <div
+        class="ai-glowano-hotspot-{{ ai_gen_id }}"
+        style="left: {{ hotspot_x }}%; top: {{ hotspot_y }}%;"
+        data-hotspot="{{ i }}"
+      >
+        <div class="ai-glowano-hotspot__button-{{ ai_gen_id }}"></div>
+        <div class="ai-glowano-tooltip-{{ ai_gen_id }}">
+          {{ hotspot_text }}
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+</glowano-banner-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class GlowanoBanner{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        this.setupTouchEvents();
+      }
+
+      setupTouchEvents() {
+        const hotspots = this.querySelectorAll('.ai-glowano-hotspot-{{ ai_gen_id }}');
+        
+        hotspots.forEach(hotspot => {
+          const button = hotspot.querySelector('.ai-glowano-hotspot__button-{{ ai_gen_id }}');
+          const tooltip = hotspot.querySelector('.ai-glowano-tooltip-{{ ai_gen_id }}');
+          let isActive = false;
+
+          button.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            
+            hotspots.forEach(otherHotspot => {
+              if (otherHotspot !== hotspot) {
+                otherHotspot.querySelector('.ai-glowano-tooltip-{{ ai_gen_id }}').style.opacity = '0';otherHotspot.querySelector('.ai-glowano-tooltip-{{ ai_gen_id }}').style.visibility = 'hidden';
+              }
+            });
+
+            if (!isActive) {
+              tooltip.style.opacity = '1';
+              tooltip.style.visibility = 'visible';
+              tooltip.style.transform = 'translateX(-50%) translateY(-5px)';
+              button.style.transform = 'scale(1.2)';
+              button.style.animation = 'ai-glowano-ripple-{{ ai_gen_id }} 0.6s ease-out';
+              isActive = true;
+            } else {
+              tooltip.style.opacity = '0';
+              tooltip.style.visibility = 'hidden';
+              tooltip.style.transform = 'translateX(-50%) translateY(0)';
+              button.style.transform = 'scale(1)';
+              isActive = false;
+            }
+          });
+
+          button.addEventListener('animationend', () => {
+            button.style.animation = 'ai-glowano-pulse-{{ ai_gen_id }} 2s infinite';
+          });
+        });document.addEventListener('touchstart', (e) => {
+          if (!e.target.closest('.ai-glowano-hotspot-{{ ai_gen_id }}')) {
+            hotspots.forEach(hotspot => {
+              const tooltip = hotspot.querySelector('.ai-glowano-tooltip-{{ ai_gen_id }}');
+              const button = hotspot.querySelector('.ai-glowano-hotspot__button-{{ ai_gen_id }}');
+              tooltip.style.opacity = '0';
+              tooltip.style.visibility = 'hidden';
+              tooltip.style.transform = 'translateX(-50%) translateY(0)';
+              button.style.transform = 'scale(1)';});
+          }
+        });
+      }
+    }
+
+    customElements.define('glowano-banner-{{ ai_gen_id }}', GlowanoBanner{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Glowano banner",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Banner image"
+    },
+    {
+      "type": "image_picker",
+      "id": "banner_image",
+      "label": "Banner image"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot1"
+    },
+    {
+      "type": "checkbox",
+      "id": "hotspot_1_enabled",
+      "label": "Enable hotspot 1",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "hotspot_1_x",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 25
+    },
+    {
+      "type": "range",
+      "id": "hotspot_1_y",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 25
+    },
+    {
+      "type": "text",
+      "id": "hotspot_1_text",
+      "label": "Tooltip text",
+      "default": "Discover luxury"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot 2"
+    },
+    {
+      "type": "checkbox",
+      "id": "hotspot_2_enabled",
+      "label": "Enable hotspot 2",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "hotspot_2_x",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "hotspot_2_y",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 50
+    },
+    {
+      "type": "text",
+      "id": "hotspot_2_text",
+      "label": "Tooltip text",
+      "default": "Premium quality"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot 3"
+    },
+    {
+      "type": "checkbox",
+      "id": "hotspot_3_enabled",
+      "label": "Enable hotspot 3",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "hotspot_3_x",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 75
+    },
+    {
+      "type": "range",
+      "id": "hotspot_3_y",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 75
+    },
+    {
+      "type": "text",
+      "id": "hotspot_3_text",
+      "label": "Tooltip text",
+      "default": "Exclusive design"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot 4"
+    },
+    {
+      "type": "checkbox",
+      "id": "hotspot_4_enabled",
+      "label": "Enable hotspot 4"
+    },
+    {
+      "type": "range",
+      "id": "hotspot_4_x",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "hotspot_4_y",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 70
+    },
+    {
+      "type": "text",
+      "id": "hotspot_4_text",
+      "label": "Tooltip text"
+    },
+    {
+      "type": "header",
+      "content": "Hotspot 5"
+    },
+    {
+      "type": "checkbox",
+      "id": "hotspot_5_enabled",
+      "label": "Enable hotspot 5"
+    },
+    {
+      "type": "range",
+      "id": "hotspot_5_x",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Horizontal position",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "hotspot_5_y",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Vertical position",
+      "default": 30
+    },
+    {
+      "type": "text",
+      "id": "hotspot_5_text",
+      "label": "Tooltip text"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Glowano banner"
+    }
+  ],
+  "tag": null
+}
+{% endschema %}

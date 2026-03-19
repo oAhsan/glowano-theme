@@ -1,0 +1,452 @@
+{% doc %}
+  @prompt
+    “Create a futuristic product showcase section with a full-screen 3D parallax effect background that reacts to mouse movement. Each product card should float slightly like holograms with smooth hover animations. Add a central glowing spotlight effect that follows the cursor. Products should rotate slowly when hovered and have a ‘Shop Now’ button that expands with a ripple animation. The section should feel like an interactive digital showroom
+
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-futuristic-showcase-{{ ai_gen_id }} {
+    position: relative;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+    overflow: hidden;
+    padding: 60px 20px;
+    cursor: none;
+  }
+
+  .ai-futuristic-showcase-bg-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(120, 219, 226, 0.15) 0%, transparent 50%);
+    transition: transform 0.3s ease;
+  }
+
+  .ai-futuristic-showcase-spotlight-{{ ai_gen_id }} {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(0, 255, 255, 0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    transition: all 0.1s ease;
+    z-index: 1;
+  }
+
+  .ai-futuristic-showcase-container-{{ ai_gen_id }} {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    z-index: 2;
+  }
+
+  .ai-futuristic-showcase-title-{{ ai_gen_id }} {
+    text-align: center;
+    color: {{ block.settings.title_color }};
+    font-size: {{ block.settings.title_size }}px;
+    margin-bottom: 60px;
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    animation: ai-futuristic-glow-{{ ai_gen_id }} 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes ai-futuristic-glow-{{ ai_gen_id }} {
+    from { text-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
+    to { text-shadow: 0 0 30px rgba(0, 255, 255, 0.8), 0 0 40px rgba(0, 255, 255, 0.3); }
+  }
+
+  .ai-futuristic-showcase-grid-{{ ai_gen_id }} {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 40px;
+    perspective: 1000px;
+  }
+
+  .ai-futuristic-showcase-card-{{ ai_gen_id }} {
+    position: relative;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    transform-style: preserve-3d;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    backdrop-filter: blur(10px);
+    animation: ai-futuristic-float-{{ ai_gen_id }} 6s ease-in-out infinite;
+  }
+
+  .ai-futuristic-showcase-card-{{ ai_gen_id }}:nth-child(2n) {
+    animation-delay: -2s;
+  }
+
+  .ai-futuristic-showcase-card-{{ ai_gen_id }}:nth-child(3n) {
+    animation-delay: -4s;
+  }
+
+  @keyframes ai-futuristic-float-{{ ai_gen_id }} {
+    0%, 100% { transform: translateY(0px) rotateX(0deg); }
+    50% { transform: translateY(-10px) rotateX(2deg); }
+  }
+
+  .ai-futuristic-showcase-card-{{ ai_gen_id }}:hover {
+    transform: translateY(-20px) rotateY(10deg) scale(1.05);
+    border-color: rgba(0, 255, 255, 0.8);
+    box-shadow: 
+      0 20px 40px rgba(0, 255, 255, 0.2),
+      inset 0 0 20px rgba(0, 255, 255, 0.1);
+  }
+
+  .ai-futuristic-showcase-card-{{ ai_gen_id }}::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(0, 255, 255, 0.1) 50%, transparent 70%);
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .ai-futuristic-showcase-card-{{ ai_gen_id }}:hover::before {
+    opacity: 1;
+  }
+
+  .ai-futuristic-showcase-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    transition: transform 0.4s ease;
+    filter: brightness(0.9) contrast(1.1);
+  }
+
+  .ai-futuristic-showcase-card-{{ ai_gen_id }}:hover .ai-futuristic-showcase-image-{{ ai_gen_id }} {
+    transform: rotateY(15deg) scale(1.1);filter: brightness(1.1) contrast(1.2);
+  }
+
+  .ai-futuristic-showcase-image-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed rgba(0, 255, 255, 0.3);
+  }
+
+  .ai-futuristic-showcase-image-placeholder-{{ ai_gen_id }} svg {
+    width: 60px;
+    height: 60px;
+    opacity: 0.5;
+    color: rgba(0, 255, 255, 0.6);
+  }
+
+  .ai-futuristic-showcase-product-title-{{ ai_gen_id }} {
+    color: {{ block.settings.text_color }};
+    font-size: 20px;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+  }
+
+  .ai-futuristic-showcase-product-price-{{ ai_gen_id }} {
+    color: {{ block.settings.price_color }};
+    font-size: 18px;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+
+  .ai-futuristic-showcase-button-{{ ai_gen_id }} {
+    position: relative;
+    background: linear-gradient(45deg, {{ block.settings.button_color }}, {{ block.settings.button_hover_color }});
+    color: {{ block.settings.button_text_color }};
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+  }
+
+  .ai-futuristic-showcase-button-{{ ai_gen_id }}:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(0, 255, 255, 0.5);
+  }
+
+  .ai-futuristic-showcase-button-{{ ai_gen_id }}::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.5s ease;
+  }
+
+  .ai-futuristic-showcase-button-{{ ai_gen_id }}:active::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  .ai-futuristic-showcase-empty-state-{{ ai_gen_id }} {
+    text-align: center;
+    color: rgba(0, 255, 255, 0.6);
+    font-size: 14px;
+    margin-top: 20px;
+  }
+
+  @media screen and (max-width: 768px) {
+    .ai-futuristic-showcase-{{ ai_gen_id }} {
+      min-height: auto;
+      padding: 40px 15px;
+    }
+
+    .ai-futuristic-showcase-grid-{{ ai_gen_id }} {
+      grid-template-columns: 1fr;gap: 30px;
+    }
+
+    .ai-futuristic-showcase-title-{{ ai_gen_id }} {
+      font-size: {{ block.settings.title_size | times: 0.8 }}px;
+      margin-bottom: 40px;
+    }
+
+    .ai-futuristic-showcase-card-{{ ai_gen_id }}:hover {
+      transform: translateY(-10px) scale(1.02);
+    }
+  }
+{% endstyle %}<futuristic-showcase-{{ ai_gen_id }}
+  class="ai-futuristic-showcase-{{ ai_gen_id }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-futuristic-showcase-bg-{{ ai_gen_id }}"></div>
+  <div class="ai-futuristic-showcase-spotlight-{{ ai_gen_id }}"></div>
+
+  <div class="ai-futuristic-showcase-container-{{ ai_gen_id }}">
+    {% if block.settings.title != blank %}
+      <h2 class="ai-futuristic-showcase-title-{{ ai_gen_id }}">{{ block.settings.title }}</h2>
+    {% endif %}
+
+    <div class="ai-futuristic-showcase-grid-{{ ai_gen_id }}">
+      {% for i in (1..6) %}
+        {% assign product_key = 'product_' | append: i %}
+        {% assign product = block.settings[product_key] %}
+
+        {% if product != blank %}
+          <div class="ai-futuristic-showcase-card-{{ ai_gen_id }}">
+            {% if product.featured_image %}
+              <img
+                src="{{ product.featured_image | image_url: width: 400}}"
+                alt="{{ product.featured_image.alt | escape }}"
+                class="ai-futuristic-showcase-image-{{ ai_gen_id }}"loading="lazy"
+                width="400"
+                height="400"
+              >
+            {% else %}
+              <div class="ai-futuristic-showcase-image-placeholder-{{ ai_gen_id }}">
+                {{ 'product-1' | placeholder_svg_tag }}
+              </div>
+            {% endif %}
+
+            <h3 class="ai-futuristic-showcase-product-title-{{ ai_gen_id }}">{{ product.title }}</h3>
+            <div class="ai-futuristic-showcase-product-price-{{ ai_gen_id }}">{{ product.price | money }}</div><a
+              href="{{ product.url }}"
+              class="ai-futuristic-showcase-button-{{ ai_gen_id }}">
+              {{ block.settings.button_text }}
+            </a>
+          </div>
+        {% else %}
+          <div class="ai-futuristic-showcase-card-{{ ai_gen_id }}">
+            <div class="ai-futuristic-showcase-image-placeholder-{{ ai_gen_id }}">
+              {{ 'product-1' | placeholder_svg_tag }}
+            </div>
+            <h3 class="ai-futuristic-showcase-product-title-{{ ai_gen_id }}">Product {{ i }}</h3>
+            <div class="ai-futuristic-showcase-product-price-{{ ai_gen_id }}">$0.00</div>
+            <div class="ai-futuristic-showcase-empty-state-{{ ai_gen_id }}">
+              Select a product for slot {{ i }}
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</futuristic-showcase-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class FuturisticShowcase{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.background = this.querySelector('.ai-futuristic-showcase-bg-{{ ai_gen_id }}');
+        this.spotlight = this.querySelector('.ai-futuristic-showcase-spotlight-{{ ai_gen_id }}');}
+
+      connectedCallback() {
+        this.setupParallax();
+        this.setupSpotlight();
+      }
+
+      setupParallax() {
+        this.addEventListener('mousemove', (e) => {
+          const rect = this.getBoundingClientRect();
+          const x = (e.clientX - rect.left) / rect.width;
+          const y = (e.clientY - rect.top) / rect.height;
+
+          const moveX = (x - 0.5) * 20;
+          const moveY = (y - 0.5) * 20;
+
+          this.background.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.1)`;
+        });
+
+        this.addEventListener('mouseleave', () => {
+          this.background.style.transform = 'translate(0px, 0px) scale(1.1)';
+        });
+      }
+
+      setupSpotlight() {
+        this.addEventListener('mousemove', (e) => {
+          const rect = this.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          this.spotlight.style.left = `${x - 150}px`;
+          this.spotlight.style.top = `${y - 150}px`;
+          this.spotlight.style.opacity = '1';
+        });
+
+        this.addEventListener('mouseleave', () => {
+          this.spotlight.style.opacity = '0';
+        });
+      }
+    }
+
+    customElements.define('futuristic-showcase-{{ ai_gen_id }}', FuturisticShowcase{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Futuristic showcase",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Future Collection"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "Shop Now"
+    },
+    {
+      "type": "header",
+      "content": "Products"
+    },
+    {
+      "type": "product",
+      "id": "product_1",
+      "label": "Product 1"
+    },
+    {
+      "type": "product",
+      "id": "product_2",
+      "label": "Product 2"
+    },
+    {
+      "type": "product",
+      "id": "product_3",
+      "label": "Product 3"
+    },
+    {
+      "type": "product",
+      "id": "product_4",
+      "label": "Product 4"
+    },
+    {
+      "type": "product",
+      "id": "product_5",
+      "label": "Product 5"
+    },
+    {
+      "type": "product",
+      "id": "product_6",
+      "label": "Product 6"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "min": 24,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Title size",
+      "default": 42
+    },
+    {
+      "type": "color",
+      "id": "title_color",
+      "label": "Title color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "price_color",
+      "label": "Price color",
+      "default": "#00ffff"
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button color",
+      "default": "#00ffff"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_color",
+      "label": "Button hover color",
+      "default": "#0099cc"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button text color",
+      "default": "#000000"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Futuristic showcase"
+    }
+  ]
+}
+{% endschema %}
